@@ -23,12 +23,17 @@ import (
 )
 
 func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
+	if len(proxyInfo) != 5 {
+		err = errors.New("proxyInfo params number neq 5")
+		return
+	}
+
 	inputConfig := InputParams{
-		Ip:       proxyInfo[0],
-		Port:     proxyInfo[1],
-		Username: proxyInfo[2],
-		Password: proxyInfo[3],
-		Type:     proxyInfo[4],
+		Ip:       proxyInfo[3],
+		Port:     proxyInfo[4],
+		Username: proxyInfo[1],
+		Password: proxyInfo[2],
+		Type:     strings.ToLower(proxyInfo[0]),
 	}
 	switch inputConfig.Type {
 	case SSH:

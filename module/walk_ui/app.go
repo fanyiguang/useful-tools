@@ -2,8 +2,6 @@ package walkUI
 
 import (
 	"bytes"
-	"fmt"
-	"log"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/proxy"
 
@@ -92,7 +90,6 @@ func (mpmw *MultiPageMainWindow) newPageAction(title, image string, newPage Page
 	mpmw.action2NewPage[action] = newPage
 
 	action.Triggered().Attach(func() {
-		log.Println("切换action", action.Text())
 		mpmw.setCurrentAction(action)
 	})
 
@@ -117,7 +114,6 @@ func (mpmw *MultiPageMainWindow) setCurrentAction(action *walk.Action) error {
 
 	newPage := mpmw.action2NewPage[action]
 
-	fmt.Println(ConvenientModeMenu.Checked())
 	page, err := newPage(mpmw.pageCom, ConvenientModeMenu.Checked())
 	if err != nil {
 		return err
@@ -299,9 +295,9 @@ func New() *AppMainWindow {
 				Items: []MenuItem{
 					Action{
 						AssignTo: &ConvenientModeMenu,
-						Text:     "模式",
+						Text:     "便捷模式",
 						//Checked: Bind("openHiddenCB.Visible"),
-						Checked: true,
+						Checked: false,
 						OnTriggered: func() {
 							switch ConvenientModeMenu.Checked() {
 							case false:
@@ -310,7 +306,6 @@ func New() *AppMainWindow {
 								_ = ConvenientModeMenu.SetChecked(false)
 							}
 							_ = mw.setCurrentAction(mw.currentAction)
-							fmt.Println("====", ConvenientModeMenu.Checked())
 						},
 					},
 				},

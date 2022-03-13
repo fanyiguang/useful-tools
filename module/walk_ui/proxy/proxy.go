@@ -85,9 +85,9 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 					// 标准模式
 					Composite{
 						StretchFactor: 1,
-						Background: SolidColorBrush{ // 增加背景颜色
-							Color: walk.RGB(14, 249, 9),
-						},
+						//Background: SolidColorBrush{ // 增加背景颜色
+						//	Color: walk.RGB(14, 249, 9),
+						//},
 						Visible: normalModeState(IsConvenientMode),
 						//MinSize: Size{Width: 600},
 						Layout: Grid{
@@ -253,9 +253,9 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						Name:          "convenient_mode",
 						Visible:       convenientModeState(IsConvenientMode),
 						StretchFactor: 1,
-						Background: SolidColorBrush{ // 增加背景颜色
-							Color: walk.RGB(14, 249, 9),
-						},
+						//Background: SolidColorBrush{ // 增加背景颜色
+						//	Color: walk.RGB(14, 249, 9),
+						//},
 						//MinSize: Size{Width: 600},
 						Layout: Grid{
 							Alignment: AlignHVDefault,
