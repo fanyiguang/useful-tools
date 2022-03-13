@@ -2,6 +2,7 @@ package walkUI
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/proxy"
@@ -10,7 +11,11 @@ import (
 	. "github.com/lxn/walk/declarative"
 )
 
-type PageFactoryFunc func(parent walk.Container) (common.Page, error)
+var (
+	ConvenientModeMenu *walk.Action
+)
+
+type PageFactoryFunc func(parent walk.Container, IsConvenientMode bool) (common.Page, error)
 
 type MultiPageMainWindow struct {
 	*walk.MainWindow
@@ -112,7 +117,8 @@ func (mpmw *MultiPageMainWindow) setCurrentAction(action *walk.Action) error {
 
 	newPage := mpmw.action2NewPage[action]
 
-	page, err := newPage(mpmw.pageCom)
+	fmt.Println(ConvenientModeMenu.Checked())
+	page, err := newPage(mpmw.pageCom, ConvenientModeMenu.Checked())
 	if err != nil {
 		return err
 	}
@@ -208,6 +214,12 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 				Name:     "pageCom",
 				Layout:   HBox{MarginsZero: true, SpacingZero: true},
 			},
+			CheckBox{
+				Name:    "openHiddenCB",
+				Text:    "Open Hidden",
+				Checked: false,
+				Visible: false,
+			},
 		},
 	}).Create(); err != nil {
 		return nil, err
@@ -268,11 +280,14 @@ func (mw *AppMainWindow) aboutAction_Triggered() {
 		walk.MsgBoxOK|walk.MsgBoxIconInformation)
 }
 
+func (mw *AppMainWindow) openAction_Triggered() {
+	walk.MsgBox(mw, "Open", "Pretend to open a file...", walk.MsgBoxIconInformation)
+}
+
 func New() *AppMainWindow {
 	walk.Resources.SetRootDirPath(`D:\study\zixun\go_gui_walk\examples\img`)
 
 	mw := new(AppMainWindow)
-
 	cfg := &MultiPageMainWindowConfig{
 		Name:    "mainWindow",
 		MinSize: Size{500, 500},
@@ -280,10 +295,35 @@ func New() *AppMainWindow {
 		Size:    Size{500, 500},
 		MenuItems: []MenuItem{
 			Menu{
-				Text: "&Help",
+				Text: "View",
 				Items: []MenuItem{
 					Action{
-						Text:        "About",
+						AssignTo: &ConvenientModeMenu,
+						Text:     "模式",
+						//Checked: Bind("openHiddenCB.Visible"),
+						Checked: true,
+						OnTriggered: func() {
+							switch ConvenientModeMenu.Checked() {
+							case false:
+								_ = ConvenientModeMenu.SetChecked(true)
+							case true:
+								_ = ConvenientModeMenu.SetChecked(false)
+							}
+							_ = mw.setCurrentAction(mw.currentAction)
+							fmt.Println("====", ConvenientModeMenu.Checked())
+						},
+					},
+				},
+			},
+			Menu{
+				Text: "Help",
+				Items: []MenuItem{
+					Action{
+						Text:        "反馈",
+						OnTriggered: func() { mw.aboutAction_Triggered() },
+					},
+					Action{
+						Text:        "点赞",
 						OnTriggered: func() { mw.aboutAction_Triggered() },
 					},
 				},
@@ -303,6 +343,16 @@ func New() *AppMainWindow {
 	if err != nil {
 		panic(err)
 	}
+
+	//addRecentFileActions := func(texts ...string) {
+	//	for _, text := range texts {
+	//		a := walk.NewAction()
+	//		_ = a.SetText(text)
+	//		a.Triggered().Attach(mw.openAction_Triggered)
+	//		_ = modeMenu.Actions().Add(a)
+	//	}
+	//}
+	//addRecentFileActions("Foo", "Bar")
 
 	mw.MultiPageMainWindow = mpmw
 	mw.updateTitle(mw.CurrentPageTitle())

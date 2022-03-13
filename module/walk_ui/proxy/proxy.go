@@ -13,14 +13,15 @@ import (
 
 type Page struct {
 	*walk.Composite
-	logicControl  *proxy.Proxy
-	proxyType     *walk.ComboBox
-	proxyIp       *walk.LineEdit
-	proxyPort     *walk.LineEdit
-	proxyUsername *walk.LineEdit
-	proxyPassword *walk.LineEdit
-	subButton     *walk.PushButton
-	viewContent   *walk.TextEdit
+	logicControl          *proxy.Proxy
+	proxyType             *walk.ComboBox
+	proxyIp               *walk.LineEdit
+	proxyPort             *walk.LineEdit
+	proxyUsername         *walk.LineEdit
+	proxyPassword         *walk.LineEdit
+	subButton             *walk.PushButton
+	viewContent           *walk.TextEdit
+	convenientModeContent *walk.TextEdit
 }
 
 type CompanyItem struct {
@@ -32,11 +33,22 @@ type CompanyItem struct {
 	//BindMsg string
 }
 
-func (p *Page) checkProxy() {
+func (p *Page) normalCheckProxy() {
 	Go.Go(func() {
-		checkProxy, err := p.logicControl.CheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text())
+		checkProxy, err := p.logicControl.NormalCheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text())
 		if err != nil {
-			wlog.Warm("p.logicControl.CheckProxy failed: %+v", err)
+			wlog.Warm("p.logicControl.NormalCheckProxy failed: %+v", err)
+		} else {
+			p.PrintContent(checkProxy)
+		}
+	})
+}
+
+func (p *Page) convenientCheckProxy() {
+	Go.Go(func() {
+		checkProxy, err := p.logicControl.ConvenientCheckProxy(p.convenientModeContent.Text())
+		if err != nil {
+			wlog.Warm("p.logicControl.ConvenientCheckProxy failed: %+v", err)
 		} else {
 			p.PrintContent(checkProxy)
 		}
@@ -47,30 +59,199 @@ func (p *Page) PrintContent(content string) {
 	p.viewContent.SetText(content)
 }
 
-func NewPage(parent walk.Container) (common.Page, error) {
+func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) {
 	p := new(Page)
 	if err := (Composite{
 		AssignTo: &p.Composite,
-		Name:     "fooPage",
+		Name:     "proxyPage",
 		Layout: Grid{
 			MarginsZero: true,
 			Rows:        1,
 		},
-		Background: SolidColorBrush{ // 增加背景颜色
-			Color: walk.RGB(124, 149, 9),
-		},
+		//Background: SolidColorBrush{ // 增加背景颜色
+		//	Color: walk.RGB(124, 149, 9),
+		//},
 		Children: []Widget{
 			Composite{
-				Background: SolidColorBrush{ // 增加背景颜色
-					Color: walk.RGB(124, 89, 99),
-				},
+				//Background: SolidColorBrush{ // 增加背景颜色
+				//	Color: walk.RGB(124, 89, 99),
+				//},
 				Layout: Grid{
 					Rows:        2,
 					MarginsZero: true,
 					SpacingZero: true,
 				},
 				Children: []Widget{
+					// 标准模式
 					Composite{
+						StretchFactor: 1,
+						Background: SolidColorBrush{ // 增加背景颜色
+							Color: walk.RGB(14, 249, 9),
+						},
+						Visible: normalModeState(IsConvenientMode),
+						//MinSize: Size{Width: 600},
+						Layout: Grid{
+							Rows: 1,
+							//Columns: 1,
+							//MarginsZero: true,
+						},
+						Children: []Widget{
+							GroupBox{
+								Title: "Gradient Parameters",
+								Layout: Grid{
+									Rows: 12,
+								},
+								Children: []Widget{
+									//VSpacer{MinSize: Size{Height: 5}},
+									Label{
+										Text:      "代理类型:",
+										TextColor: walk.RGB(91, 92, 96),
+										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
+									},
+									ComboBox{
+										Font:          Font{PointSize: 16},
+										AssignTo:      &p.proxyType,
+										Value:         1,
+										Model:         getProxyType(),
+										DisplayMember: "Name",
+										BindingMember: "Key",
+										OnKeyPress: func(key walk.Key) {
+											if key == walk.KeyTab || key == walk.KeyReturn {
+												_ = p.proxyIp.SetFocus()
+											}
+										},
+									},
+									Label{
+										Text:      "代理地址:",
+										TextColor: walk.RGB(91, 92, 96),
+										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
+									},
+									LineEdit{
+										AssignTo:    &p.proxyIp,
+										TextColor:   walk.RGB(40, 40, 42),
+										Background:  TransparentBrush{},
+										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
+										ToolTipText: "请输入代理地址",
+										MinSize:     Size{Height: 36},
+										MaxSize:     Size{Height: 36},
+										OnKeyPress: func(key walk.Key) {
+											if key == walk.KeyTab || key == walk.KeyReturn {
+												_ = p.proxyPort.SetFocus()
+											}
+										},
+									},
+									//VSpacer{Size: 20},
+									Label{
+										Text:      "代理端口:",
+										TextColor: walk.RGB(91, 92, 96),
+										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
+									},
+									LineEdit{
+										AssignTo:    &p.proxyPort,
+										TextColor:   walk.RGB(40, 40, 42),
+										Background:  TransparentBrush{},
+										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
+										ToolTipText: "请输入代理端口",
+										MinSize:     Size{Height: 36},
+										MaxSize:     Size{Height: 36},
+										OnKeyPress: func(key walk.Key) {
+											if key == walk.KeyTab || key == walk.KeyReturn {
+												_ = p.proxyUsername.SetFocus()
+											}
+										},
+									},
+									//VSpacer{Size: 20},
+									Label{
+										Text:      "代理账号:",
+										TextColor: walk.RGB(91, 92, 96),
+										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
+									},
+									LineEdit{
+										AssignTo:    &p.proxyUsername,
+										TextColor:   walk.RGB(40, 40, 42),
+										Background:  TransparentBrush{},
+										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
+										ToolTipText: "请输入代理账号",
+										MinSize:     Size{Height: 36},
+										MaxSize:     Size{Height: 36},
+										OnKeyPress: func(key walk.Key) {
+											if key == walk.KeyTab || key == walk.KeyReturn {
+												_ = p.proxyPassword.SetFocus()
+											}
+										},
+									},
+									Label{
+										Text:      "代理密码:",
+										TextColor: walk.RGB(91, 92, 96),
+										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
+									},
+									LineEdit{
+										AssignTo:  &p.proxyPassword,
+										TextColor: walk.RGB(40, 40, 42),
+										//PasswordMode: true,
+										Background:  TransparentBrush{},
+										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
+										ToolTipText: "请输入代理密码",
+										MinSize:     Size{Height: 36},
+										MaxSize:     Size{Height: 36},
+										OnKeyPress: func(key walk.Key) {
+											if key == walk.KeyTab || key == walk.KeyReturn {
+												_ = p.subButton.SetFocus()
+											}
+										},
+									},
+									VSpacer{},
+									Composite{
+										StretchFactor: 1,
+										//Background: SolidColorBrush{ // 增加背景颜色
+										//	Color: walk.RGB(54, 29, 9),
+										//},
+										//MinSize: Size{Width: 600},
+										Layout: Grid{
+											Columns:     2,
+											MarginsZero: true,
+											SpacingZero: true,
+										},
+										Children: []Widget{
+											PushButton{
+												AssignTo: &p.subButton,
+												Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
+												MinSize:  Size{Height: 36},
+												MaxSize:  Size{Height: 36},
+												Text:     "检测",
+												OnClicked: func() {
+													p.normalCheckProxy()
+												},
+												//OnKeyPress: func(key walk.Key) {
+												//	fmt.Println(key)
+												//	if key == walk.KeyReturn {
+												//		p.normalCheckProxy()
+												//	}
+												//},
+											},
+											PushButton{
+												Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
+												MinSize: Size{Height: 36},
+												MaxSize: Size{Height: 36},
+												Text:    "清空",
+												OnClicked: func() {
+													_ = p.proxyIp.SetText("")
+													_ = p.proxyPort.SetText("")
+													_ = p.proxyUsername.SetText("")
+													_ = p.proxyPassword.SetText("")
+												},
+											},
+										},
+									},
+									//VSpacer{Size: 10},
+								},
+							},
+						},
+					},
+					// 便捷模式
+					Composite{
+						Name:          "convenient_mode",
+						Visible:       convenientModeState(IsConvenientMode),
 						StretchFactor: 1,
 						Background: SolidColorBrush{ // 增加背景颜色
 							Color: walk.RGB(14, 249, 9),
@@ -78,129 +259,58 @@ func NewPage(parent walk.Container) (common.Page, error) {
 						//MinSize: Size{Width: 600},
 						Layout: Grid{
 							Alignment: AlignHVDefault,
-							Rows:      12,
+							Rows:      1,
 							//Columns: 1,
 							//MarginsZero: true,
 						},
 						Children: []Widget{
-							//VSpacer{MinSize: Size{Height: 5}},
-							Label{
-								Text:      "代理类型:",
-								TextColor: walk.RGB(91, 92, 96),
-								Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
-							},
-							ComboBox{
-								Font:          Font{PointSize: 16},
-								AssignTo:      &p.proxyType,
-								Value:         1,
-								Model:         getProxyType(),
-								DisplayMember: "Name",
-								BindingMember: "Key",
-								OnKeyPress: func(key walk.Key) {
-									if key == walk.KeyTab || key == walk.KeyReturn {
-										_ = p.proxyIp.SetFocus()
-									}
+							GroupBox{
+								Title:  "Gradient Parameters",
+								Layout: VBox{},
+								Children: []Widget{
+									TextEdit{
+										Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
+										AssignTo: &p.convenientModeContent,
+									},
+									Composite{
+										StretchFactor: 1,
+										//Background: SolidColorBrush{ // 增加背景颜色
+										//	Color: walk.RGB(54, 29, 9),
+										//},
+										//MinSize: Size{Width: 600},
+										Layout: Grid{
+											Columns:     2,
+											MarginsZero: true,
+											SpacingZero: true,
+										},
+										Children: []Widget{
+											PushButton{
+												AssignTo: &p.subButton,
+												Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
+												MinSize:  Size{Height: 36},
+												MaxSize:  Size{Height: 36},
+												Text:     "检测",
+												OnClicked: func() {
+													p.convenientCheckProxy()
+												},
+											},
+											PushButton{
+												Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
+												MinSize: Size{Height: 36},
+												MaxSize: Size{Height: 36},
+												Text:    "清空",
+												OnClicked: func() {
+													_ = p.convenientModeContent.SetText("")
+												},
+											},
+										},
+									},
 								},
 							},
-							Label{
-								Text:      "代理地址:",
-								TextColor: walk.RGB(91, 92, 96),
-								Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
-							},
-							LineEdit{
-								AssignTo:    &p.proxyIp,
-								TextColor:   walk.RGB(40, 40, 42),
-								Background:  TransparentBrush{},
-								Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-								ToolTipText: "请输入代理地址",
-								MinSize:     Size{Height: 36},
-								MaxSize:     Size{Height: 36},
-								OnKeyPress: func(key walk.Key) {
-									if key == walk.KeyTab || key == walk.KeyReturn {
-										_ = p.proxyPort.SetFocus()
-									}
-								},
-							},
-							//VSpacer{Size: 20},
-							Label{
-								Text:      "代理端口:",
-								TextColor: walk.RGB(91, 92, 96),
-								Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
-							},
-							LineEdit{
-								AssignTo:    &p.proxyPort,
-								TextColor:   walk.RGB(40, 40, 42),
-								Background:  TransparentBrush{},
-								Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-								ToolTipText: "请输入代理端口",
-								MinSize:     Size{Height: 36},
-								MaxSize:     Size{Height: 36},
-								OnKeyPress: func(key walk.Key) {
-									if key == walk.KeyTab || key == walk.KeyReturn {
-										_ = p.proxyUsername.SetFocus()
-									}
-								},
-							},
-							//VSpacer{Size: 20},
-							Label{
-								Text:      "代理账号:",
-								TextColor: walk.RGB(91, 92, 96),
-								Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
-							},
-							LineEdit{
-								AssignTo:    &p.proxyUsername,
-								TextColor:   walk.RGB(40, 40, 42),
-								Background:  TransparentBrush{},
-								Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-								ToolTipText: "请输入代理账号",
-								MinSize:     Size{Height: 36},
-								MaxSize:     Size{Height: 36},
-								OnKeyPress: func(key walk.Key) {
-									if key == walk.KeyTab || key == walk.KeyReturn {
-										_ = p.proxyPassword.SetFocus()
-									}
-								},
-							},
-							Label{
-								Text:      "代理密码:",
-								TextColor: walk.RGB(91, 92, 96),
-								Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
-							},
-							LineEdit{
-								AssignTo:  &p.proxyPassword,
-								TextColor: walk.RGB(40, 40, 42),
-								//PasswordMode: true,
-								Background:  TransparentBrush{},
-								Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-								ToolTipText: "请输入代理密码",
-								MinSize:     Size{Height: 36},
-								MaxSize:     Size{Height: 36},
-								OnKeyPress: func(key walk.Key) {
-									if key == walk.KeyTab || key == walk.KeyReturn {
-										_ = p.subButton.SetFocus()
-									}
-								},
-							},
-							PushButton{
-								AssignTo: &p.subButton,
-								Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
-								MinSize:  Size{Height: 36},
-								MaxSize:  Size{Height: 36},
-								Text:     "检测",
-								OnClicked: func() {
-									p.checkProxy()
-								},
-								//OnKeyPress: func(key walk.Key) {
-								//	fmt.Println(key)
-								//	if key == walk.KeyReturn {
-								//		p.checkProxy()
-								//	}
-								//},
-							},
-							VSpacer{},
-							//VSpacer{Size: 10},
+							//VSpacer{},
 						},
 					},
+					// 输出页面
 					Composite{
 						//StretchFactor: 1,
 						//Background: SolidColorBrush{ // 增加背景颜色
@@ -208,46 +318,50 @@ func NewPage(parent walk.Container) (common.Page, error) {
 						//},
 						//MinSize: Size{Width: 600},
 						Layout: Grid{
-							Rows:        2,
-							MarginsZero: true,
-							//SpacingZero: true,
+							Rows: 1,
 						},
 						Children: []Widget{
-							TextEdit{
-								Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
-								AssignTo: &p.viewContent,
-								ReadOnly: true,
-							},
-							Composite{
-								StretchFactor: 1,
-								//Background: SolidColorBrush{ // 增加背景颜色
-								//	Color: walk.RGB(54, 29, 9),
-								//},
-								//MinSize: Size{Width: 600},
-								Layout: Grid{
-									Columns:     2,
-									MarginsZero: true,
-									SpacingZero: true,
-								},
+							GroupBox{
+								Title:  "Gradient Parameters",
+								Layout: VBox{},
 								Children: []Widget{
-									PushButton{
-										Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
-										MinSize: Size{Height: 36},
-										MaxSize: Size{Height: 36},
-										Text:    "复制",
-										OnClicked: func() {
-											if err := walk.Clipboard().SetText(p.viewContent.Text()); err != nil {
-												log.Print("Copy: ", err)
-											}
-										},
+									TextEdit{
+										Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
+										AssignTo: &p.viewContent,
+										ReadOnly: true,
 									},
-									PushButton{
-										Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
-										MinSize: Size{Height: 36},
-										MaxSize: Size{Height: 36},
-										Text:    "清空",
-										OnClicked: func() {
-											_ = p.viewContent.SetText("")
+									Composite{
+										StretchFactor: 1,
+										//Background: SolidColorBrush{ // 增加背景颜色
+										//	Color: walk.RGB(54, 29, 9),
+										//},
+										//MinSize: Size{Width: 600},
+										Layout: Grid{
+											Columns:     2,
+											MarginsZero: true,
+											SpacingZero: true,
+										},
+										Children: []Widget{
+											PushButton{
+												Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
+												MinSize: Size{Height: 36},
+												MaxSize: Size{Height: 36},
+												Text:    "复制",
+												OnClicked: func() {
+													if err := walk.Clipboard().SetText(p.viewContent.Text()); err != nil {
+														log.Print("Copy: ", err)
+													}
+												},
+											},
+											PushButton{
+												Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
+												MinSize: Size{Height: 36},
+												MaxSize: Size{Height: 36},
+												Text:    "清空",
+												OnClicked: func() {
+													_ = p.viewContent.SetText("")
+												},
+											},
 										},
 									},
 								},
@@ -266,6 +380,14 @@ func NewPage(parent walk.Container) (common.Page, error) {
 	}
 	p.logicControl = proxy.New()
 	return p, nil
+}
+
+func normalModeState(mode bool) Property {
+	return !mode
+}
+
+func convenientModeState(mode bool) Property {
+	return mode
 }
 
 func getProxyType() []*CompanyItem {

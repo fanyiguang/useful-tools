@@ -28,7 +28,7 @@ func (p *Proxy) ResetExecuting() {
 	p.executing = false
 }
 
-func (p *Proxy) CheckProxy(ip, port, username, password, proxyType string) (content string, err error) {
+func (p *Proxy) NormalCheckProxy(ip, port, username, password, proxyType string) (content string, err error) {
 	if p.IsExecuting() {
 		err = common.ExecutingError
 		return
@@ -37,4 +37,16 @@ func (p *Proxy) CheckProxy(ip, port, username, password, proxyType string) (cont
 	p.SetExecuting()
 	defer p.ResetExecuting()
 	return proxy.SendHttpRequestByProxy(str.TrimStringSpace(ip, port, username, password, strings.ToLower(proxyType))...)
+}
+
+func (p *Proxy) ConvenientCheckProxy(convenientModeContent string) (content string, err error) {
+	if p.IsExecuting() {
+		err = common.ExecutingError
+		return
+	}
+
+	p.SetExecuting()
+	defer p.ResetExecuting()
+	return
+	//return proxy.SendHttpRequestByProxy(str.TrimStringSpace(ip, port, username, password, strings.ToLower(proxyType))...)
 }
