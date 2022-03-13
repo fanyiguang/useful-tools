@@ -52,8 +52,9 @@ func NewPage(parent walk.Container) (common.Page, error) {
 	if err := (Composite{
 		AssignTo: &p.Composite,
 		Name:     "fooPage",
-		Layout: Flow{
+		Layout: Grid{
 			MarginsZero: true,
+			Rows:        1,
 		},
 		Background: SolidColorBrush{ // 增加背景颜色
 			Color: walk.RGB(124, 149, 9),
@@ -65,21 +66,24 @@ func NewPage(parent walk.Container) (common.Page, error) {
 				},
 				Layout: Grid{
 					Rows:        2,
-					Spacing:     0,
 					MarginsZero: true,
+					SpacingZero: true,
 				},
 				Children: []Widget{
 					Composite{
 						StretchFactor: 1,
 						Background: SolidColorBrush{ // 增加背景颜色
-							Color: walk.RGB(124, 249, 9),
+							Color: walk.RGB(14, 249, 9),
 						},
 						//MinSize: Size{Width: 600},
 						Layout: Grid{
-							Rows: 12,
+							Alignment: AlignHVDefault,
+							Rows:      12,
+							//Columns: 1,
+							//MarginsZero: true,
 						},
 						Children: []Widget{
-							VSpacer{MinSize: Size{Height: 5}},
+							//VSpacer{MinSize: Size{Height: 5}},
 							Label{
 								Text:      "代理类型:",
 								TextColor: walk.RGB(91, 92, 96),
@@ -193,34 +197,37 @@ func NewPage(parent walk.Container) (common.Page, error) {
 								//	}
 								//},
 							},
+							VSpacer{},
 							//VSpacer{Size: 10},
 						},
 					},
 					Composite{
-						StretchFactor: 1,
-						Background: SolidColorBrush{ // 增加背景颜色
-							Color: walk.RGB(54, 29, 9),
-						},
+						//StretchFactor: 1,
+						//Background: SolidColorBrush{ // 增加背景颜色
+						//	Color: walk.RGB(54, 29, 9),
+						//},
 						//MinSize: Size{Width: 600},
 						Layout: Grid{
 							Rows:        2,
 							MarginsZero: true,
+							//SpacingZero: true,
 						},
 						Children: []Widget{
 							TextEdit{
 								Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
 								AssignTo: &p.viewContent,
-								//ReadOnly: true,
+								ReadOnly: true,
 							},
 							Composite{
 								StretchFactor: 1,
-								Background: SolidColorBrush{ // 增加背景颜色
-									Color: walk.RGB(54, 29, 9),
-								},
+								//Background: SolidColorBrush{ // 增加背景颜色
+								//	Color: walk.RGB(54, 29, 9),
+								//},
 								//MinSize: Size{Width: 600},
 								Layout: Grid{
 									Columns:     2,
 									MarginsZero: true,
+									SpacingZero: true,
 								},
 								Children: []Widget{
 									PushButton{
@@ -240,7 +247,7 @@ func NewPage(parent walk.Container) (common.Page, error) {
 										MaxSize: Size{Height: 36},
 										Text:    "清空",
 										OnClicked: func() {
-											p.viewContent.SetText("")
+											_ = p.viewContent.SetText("")
 										},
 									},
 								},

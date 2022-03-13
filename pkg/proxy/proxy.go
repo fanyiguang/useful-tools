@@ -22,13 +22,13 @@ import (
 	netProxy "golang.org/x/net/proxy"
 )
 
-func SendHttpRequestByProxy(ip, port, username, password, proxyType string) (res string, err error) {
+func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 	inputConfig := InputParams{
-		Type:     proxyType,
-		Ip:       ip,
-		Port:     port,
-		Username: username,
-		Password: password,
+		Ip:       proxyInfo[0],
+		Port:     proxyInfo[1],
+		Username: proxyInfo[2],
+		Password: proxyInfo[3],
+		Type:     proxyInfo[4],
 	}
 	switch inputConfig.Type {
 	case SSH:

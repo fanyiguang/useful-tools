@@ -1,8 +1,8 @@
 package proxy
 
 import (
-	"log"
 	"strings"
+	"useful-tools/helper/str"
 	"useful-tools/module/logic/common"
 	"useful-tools/pkg/proxy"
 )
@@ -36,6 +36,5 @@ func (p *Proxy) CheckProxy(ip, port, username, password, proxyType string) (cont
 
 	p.SetExecuting()
 	defer p.ResetExecuting()
-	log.Println(ip, port, username, password, proxyType)
-	return proxy.SendHttpRequestByProxy(ip, port, username, password, strings.ToLower(proxyType))
+	return proxy.SendHttpRequestByProxy(str.TrimStringSpace(ip, port, username, password, strings.ToLower(proxyType))...)
 }
