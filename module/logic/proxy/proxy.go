@@ -2,9 +2,9 @@ package proxy
 
 import (
 	"log"
-	"network-tool/module/logic/common"
-	"network-tool/pkg/proxy"
 	"strings"
+	"useful-tools/module/logic/common"
+	"useful-tools/pkg/proxy"
 )
 
 type Proxy struct {

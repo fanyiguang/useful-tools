@@ -2,8 +2,8 @@ package Go
 
 import (
 	"fmt"
-	"network-tool/pkg/wlog"
 	"runtime"
+	"useful-tools/pkg/wlog"
 )
 
 func Go(fun func()) {

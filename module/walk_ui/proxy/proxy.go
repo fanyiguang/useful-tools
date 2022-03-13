@@ -2,10 +2,10 @@ package proxy
 
 import (
 	"log"
-	"network-tool/helper/Go"
-	"network-tool/module/logic/proxy"
-	"network-tool/module/walk_ui/common"
-	"network-tool/pkg/wlog"
+	"useful-tools/helper/Go"
+	"useful-tools/module/logic/proxy"
+	"useful-tools/module/walk_ui/common"
+	"useful-tools/pkg/wlog"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"

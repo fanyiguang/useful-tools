@@ -3,8 +3,8 @@ package walkUI
 import (
 	"bytes"
 	"log"
-	"network-tool/module/walk_ui/common"
-	"network-tool/module/walk_ui/proxy"
+	"useful-tools/module/walk_ui/common"
+	"useful-tools/module/walk_ui/proxy"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"

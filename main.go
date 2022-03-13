@@ -1,8 +1,8 @@
 package main
 
 import (
-	"network-tool/app"
-	"network-tool/pkg/wlog"
+	"useful-tools/app"
+	"useful-tools/pkg/wlog"
 )
 
 func main() {

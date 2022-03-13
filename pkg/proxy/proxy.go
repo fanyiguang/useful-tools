@@ -9,11 +9,11 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	mySsl "network-tool/pkg/ssl"
-	"network-tool/pkg/wlog"
 	"regexp"
 	"strings"
 	"time"
+	mySsl "useful-tools/pkg/ssl"
+	"useful-tools/pkg/wlog"
 
 	"github.com/pkg/errors"
 
