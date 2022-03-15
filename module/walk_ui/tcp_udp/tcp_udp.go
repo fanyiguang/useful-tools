@@ -1,9 +1,9 @@
-package proxy
+package tcp_udp
 
 import (
 	"log"
 	"useful-tools/helper/Go"
-	"useful-tools/module/logic/proxy"
+	"useful-tools/module/logic/tcp_udp"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/pkg/wlog"
 
@@ -13,12 +13,11 @@ import (
 
 type Page struct {
 	*walk.Composite
-	logicControl          *proxy.Proxy
-	proxyType             *walk.ComboBox
-	proxyIp               *walk.LineEdit
-	proxyPort             *walk.LineEdit
-	proxyUsername         *walk.LineEdit
-	proxyPassword         *walk.LineEdit
+	logicControl          *tcp_udp.TcpUdp
+	network               *walk.ComboBox
+	iFaceList             *walk.ComboBox
+	targetIp              *walk.LineEdit
+	targetPort            *walk.LineEdit
 	subButton             *walk.PushButton
 	viewContent           *walk.TextEdit
 	convenientModeContent *walk.TextEdit
@@ -33,24 +32,26 @@ type CompanyItem struct {
 	//BindMsg string
 }
 
-func (p *Page) normalCheckProxy() {
+func (p *Page) normalDial() {
 	Go.Go(func() {
-		checkProxy, err := p.logicControl.NormalCheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text())
+		_, err := p.logicControl.NormalDial(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
 		if err != nil {
 			wlog.Warm("p.logicControl.NormalCheckProxy failed: %+v", err)
+			p.PrintContent(err.Error())
 		} else {
-			p.PrintContent(checkProxy)
+			p.PrintContent("OK")
 		}
 	})
 }
 
-func (p *Page) convenientCheckProxy() {
+func (p *Page) convenientDial() {
 	Go.Go(func() {
-		checkProxy, err := p.logicControl.ConvenientCheckProxy(p.convenientModeContent.Text())
+		_, err := p.logicControl.ConvenientDial(p.convenientModeContent.Text())
 		if err != nil {
 			wlog.Warm("p.logicControl.ConvenientCheckProxy failed: %+v", err)
+			p.PrintContent(err.Error())
 		} else {
-			p.PrintContent(checkProxy)
+			p.PrintContent("OK")
 		}
 	})
 }
@@ -63,7 +64,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 	p := new(Page)
 	if err := (Composite{
 		AssignTo: &p.Composite,
-		Name:     "proxyPage",
+		Name:     "tcpUdpPage",
 		Layout: Grid{
 			MarginsZero: true,
 			Rows:        1,
@@ -104,94 +105,73 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 								Children: []Widget{
 									//VSpacer{MinSize: Size{Height: 5}},
 									Label{
-										Text:      "代理类型:",
+										Text:      "协议类型:",
 										TextColor: walk.RGB(91, 92, 96),
 										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 									},
 									ComboBox{
 										Font:          Font{PointSize: 16},
-										AssignTo:      &p.proxyType,
+										AssignTo:      &p.network,
 										Value:         1,
-										Model:         getProxyType(),
+										Model:         getNetwork(),
 										DisplayMember: "Name",
 										BindingMember: "Key",
 										OnKeyPress: func(key walk.Key) {
 											if key == walk.KeyTab || key == walk.KeyReturn {
-												_ = p.proxyIp.SetFocus()
+												_ = p.iFaceList.SetFocus()
 											}
 										},
 									},
 									Label{
-										Text:      "代理地址:",
+										Text:      "本地网卡:",
 										TextColor: walk.RGB(91, 92, 96),
 										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 									},
-									LineEdit{
-										AssignTo:    &p.proxyIp,
-										TextColor:   walk.RGB(40, 40, 42),
-										Background:  TransparentBrush{},
-										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-										ToolTipText: "请输入代理地址",
-										MinSize:     Size{Height: 36},
-										MaxSize:     Size{Height: 36},
+									ComboBox{
+										Font:          Font{PointSize: 16},
+										AssignTo:      &p.iFaceList,
+										Value:         1,
+										Model:         getIFaceList(),
+										DisplayMember: "Name",
+										BindingMember: "Key",
 										OnKeyPress: func(key walk.Key) {
 											if key == walk.KeyTab || key == walk.KeyReturn {
-												_ = p.proxyPort.SetFocus()
+												_ = p.targetIp.SetFocus()
 											}
 										},
 									},
 									//VSpacer{Size: 20},
 									Label{
-										Text:      "代理端口:",
+										Text:      "目标地址:",
 										TextColor: walk.RGB(91, 92, 96),
 										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 									},
 									LineEdit{
-										AssignTo:    &p.proxyPort,
+										AssignTo:    &p.targetIp,
 										TextColor:   walk.RGB(40, 40, 42),
 										Background:  TransparentBrush{},
 										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-										ToolTipText: "请输入代理端口",
+										ToolTipText: "请输入目标地址",
 										MinSize:     Size{Height: 36},
 										MaxSize:     Size{Height: 36},
 										OnKeyPress: func(key walk.Key) {
 											if key == walk.KeyTab || key == walk.KeyReturn {
-												_ = p.proxyUsername.SetFocus()
+												_ = p.targetPort.SetFocus()
 											}
 										},
 									},
 									//VSpacer{Size: 20},
 									Label{
-										Text:      "代理账号:",
+										Text:      "目标端口:",
 										TextColor: walk.RGB(91, 92, 96),
 										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 									},
 									LineEdit{
-										AssignTo:    &p.proxyUsername,
+										AssignTo:    &p.targetPort,
 										TextColor:   walk.RGB(40, 40, 42),
 										Background:  TransparentBrush{},
 										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-										ToolTipText: "请输入代理账号",
-										MinSize:     Size{Height: 36},
-										MaxSize:     Size{Height: 36},
-										OnKeyPress: func(key walk.Key) {
-											if key == walk.KeyTab || key == walk.KeyReturn {
-												_ = p.proxyPassword.SetFocus()
-											}
-										},
-									},
-									Label{
-										Text:      "代理密码:",
-										TextColor: walk.RGB(91, 92, 96),
-										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
-									},
-									LineEdit{
-										AssignTo:  &p.proxyPassword,
-										TextColor: walk.RGB(40, 40, 42),
-										//PasswordMode: true,
-										Background:  TransparentBrush{},
-										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-										ToolTipText: "请输入代理密码",
+										ToolTipText: "请输入目标端口",
 										MinSize:     Size{Height: 36},
 										MaxSize:     Size{Height: 36},
 										OnKeyPress: func(key walk.Key) {
@@ -218,14 +198,14 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
 												MinSize:  Size{Height: 36},
 												MaxSize:  Size{Height: 36},
-												Text:     "检测",
+												Text:     "连接",
 												OnClicked: func() {
-													p.normalCheckProxy()
+													p.normalDial()
 												},
 												//OnKeyPress: func(key walk.Key) {
 												//	fmt.Println(key)
 												//	if key == walk.KeyReturn {
-												//		p.normalCheckProxy()
+												//		p.normalDial()
 												//	}
 												//},
 											},
@@ -235,10 +215,8 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												MaxSize: Size{Height: 36},
 												Text:    "清空",
 												OnClicked: func() {
-													_ = p.proxyIp.SetText("")
-													_ = p.proxyPort.SetText("")
-													_ = p.proxyUsername.SetText("")
-													_ = p.proxyPassword.SetText("")
+													_ = p.targetIp.SetText("")
+													_ = p.targetPort.SetText("")
 												},
 											},
 										},
@@ -291,7 +269,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												MaxSize:  Size{Height: 36},
 												Text:     "检测",
 												OnClicked: func() {
-													p.convenientCheckProxy()
+													p.convenientDial()
 												},
 											},
 											PushButton{
@@ -378,7 +356,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 	if err := walk.InitWrapperWindow(p); err != nil {
 		return nil, err
 	}
-	p.logicControl = proxy.New()
+	p.logicControl = tcp_udp.New()
 	return p, nil
 }
 
@@ -390,12 +368,15 @@ func convenientModeState(mode bool) Property {
 	return mode
 }
 
-func getProxyType() []*CompanyItem {
+func getNetwork() []*CompanyItem {
 	return []*CompanyItem{
-		{Key: 1, Name: "SOCKS5"},
-		{Key: 2, Name: "SSL"},
-		{Key: 3, Name: "SSH"},
-		{Key: 4, Name: "HTTP"},
-		{Key: 5, Name: "HTTPS"},
+		{Key: 1, Name: "TCP"},
+		{Key: 2, Name: "UDP"},
+	}
+}
+
+func getIFaceList() []*CompanyItem {
+	return []*CompanyItem{
+		{Key: 1, Name: "随机"},
 	}
 }

@@ -44,7 +44,8 @@ func NewLog(logPath string, level string) {
 		Daily:    true,
 	}
 	jsonConfig, _ := json.Marshal(config)
-	_ = log.SetLogger(logs.AdapterFile, string(jsonConfig))
+	_ = log.SetLogger(logs.AdapterConsole, string(jsonConfig))
+	//_ = log.SetLogger(logs.AdapterFile, string(jsonConfig))
 	log.EnableFuncCallDepth(true)
 }
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/proxy"
+	"useful-tools/module/walk_ui/tcp_udp"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
@@ -295,7 +296,7 @@ func New() *AppMainWindow {
 				Items: []MenuItem{
 					Action{
 						AssignTo: &ConvenientModeMenu,
-						Text:     "便捷模式",
+						Text:     "解析模式",
 						//Checked: Bind("openHiddenCB.Visible"),
 						Checked: false,
 						OnTriggered: func() {
@@ -319,7 +320,7 @@ func New() *AppMainWindow {
 					},
 					Action{
 						Text:        "点赞",
-						OnTriggered: func() { mw.aboutAction_Triggered() },
+						OnTriggered: func() { mw.openAction_Triggered() },
 					},
 				},
 			},
@@ -328,8 +329,8 @@ func New() *AppMainWindow {
 			mw.updateTitle(mw.CurrentPageTitle())
 		},
 		PageCfgs: []PageConfig{
-			{"代理检测", "document-new.png", proxy.NewPage},
-			{"端口检测", "document-properties.png", proxy.NewPage},
+			{"代理检测", "link.png", proxy.NewPage},
+			{"端口检测", "document-properties.png", tcp_udp.NewPage},
 			{"DNS", "system-shutdown.png", proxy.NewPage},
 		},
 	}
