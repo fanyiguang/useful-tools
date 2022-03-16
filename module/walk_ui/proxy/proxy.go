@@ -29,6 +29,7 @@ func (p *Page) normalCheckProxy() {
 		checkProxy, err := p.logicControl.NormalCheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text())
 		if err != nil {
 			wlog.Warm("p.logicControl.NormalCheckProxy failed: %+v", err)
+			p.PrintContent(err.Error())
 		} else {
 			p.PrintContent(checkProxy)
 		}
@@ -40,6 +41,7 @@ func (p *Page) convenientCheckProxy() {
 		checkProxy, err := p.logicControl.ConvenientCheckProxy(p.convenientModeContent.Text())
 		if err != nil {
 			wlog.Warm("p.logicControl.ConvenientCheckProxy failed: %+v", err)
+			p.PrintContent(err.Error())
 		} else {
 			p.PrintContent(checkProxy)
 		}
@@ -262,6 +264,11 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 									TextEdit{
 										Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
 										AssignTo: &p.convenientModeContent,
+										OnKeyPress: func(key walk.Key) {
+											if key == walk.KeyReturn {
+												_ = p.subButton.Checked()
+											}
+										},
 									},
 									Composite{
 										StretchFactor: 1,

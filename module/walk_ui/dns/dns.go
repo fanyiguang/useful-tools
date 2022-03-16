@@ -1,9 +1,10 @@
-package tcp_udp
+package dns
 
 import (
 	"log"
+	"strings"
 	"useful-tools/helper/Go"
-	"useful-tools/module/logic/tcp_udp"
+	"useful-tools/module/logic/dns"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/pkg/wlog"
 
@@ -13,49 +14,47 @@ import (
 
 type Page struct {
 	*walk.Composite
-	logicControl          *tcp_udp.TcpUdp
-	network               *walk.ComboBox
-	iFaceList             *walk.ComboBox
-	targetIp              *walk.LineEdit
-	targetPort            *walk.LineEdit
+	logicControl          *dns.Dns
+	dnsServerAddr         *walk.LineEdit
+	parserDomain          *walk.LineEdit
 	subButton             *walk.PushButton
 	viewContent           *walk.TextEdit
 	convenientModeContent *walk.TextEdit
 }
 
-func (p *Page) normalDial() {
+func (p *Page) normalDns() {
 	Go.Go(func() {
-		_, err := p.logicControl.NormalDial(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
+		ips, err := p.logicControl.NormalDns(p.dnsServerAddr.Text(), p.parserDomain.Text())
 		if err != nil {
-			wlog.Warm("p.logicControl.NormalDial failed: %+v", err)
+			wlog.Warm("p.logicControl.NormalDns failed: %+v", err)
 			p.PrintContent(err.Error())
 		} else {
-			p.PrintContent("OK")
+			p.PrintContent(strings.Join(ips, "\r\n"))
 		}
 	})
 }
 
-func (p *Page) convenientDial() {
+func (p *Page) convenientDns() {
 	Go.Go(func() {
-		_, err := p.logicControl.ConvenientDial(p.convenientModeContent.Text())
+		ips, err := p.logicControl.ConvenientDns(p.convenientModeContent.Text())
 		if err != nil {
-			wlog.Warm("p.logicControl.ConvenientDial failed: %+v", err)
+			wlog.Warm("p.logicControl.ConvenientDns failed: %+v", err)
 			p.PrintContent(err.Error())
 		} else {
-			p.PrintContent("OK")
+			p.PrintContent(strings.Join(ips, "\r\n"))
 		}
 	})
 }
 
 func (p *Page) PrintContent(content string) {
-	p.viewContent.SetText(content)
+	_ = p.viewContent.SetText(content)
 }
 
 func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) {
 	p := new(Page)
 	if err := (Composite{
 		AssignTo: &p.Composite,
-		Name:     "tcpUdpPage",
+		Name:     "dnsPage",
 		Layout: Grid{
 			MarginsZero: true,
 			Rows:        1,
@@ -95,74 +94,39 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 								},
 								Children: []Widget{
 									//VSpacer{MinSize: Size{Height: 5}},
-									Label{
-										Text:      "协议类型:",
-										TextColor: walk.RGB(91, 92, 96),
-										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
-									},
-									ComboBox{
-										Font:          Font{PointSize: 16},
-										AssignTo:      &p.network,
-										Value:         1,
-										Model:         getNetwork(),
-										DisplayMember: "Name",
-										BindingMember: "Key",
-										OnKeyPress: func(key walk.Key) {
-											if key == walk.KeyTab || key == walk.KeyReturn {
-												_ = p.iFaceList.SetFocus()
-											}
-										},
-									},
-									Label{
-										Text:      "本地网卡:",
-										TextColor: walk.RGB(91, 92, 96),
-										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
-									},
-									ComboBox{
-										Font:          Font{PointSize: 16},
-										AssignTo:      &p.iFaceList,
-										Value:         1,
-										Model:         getDefaultIFaceList(),
-										DisplayMember: "Name",
-										BindingMember: "Key",
-										OnKeyPress: func(key walk.Key) {
-											if key == walk.KeyTab || key == walk.KeyReturn {
-												_ = p.targetIp.SetFocus()
-											}
-										},
-									},
 									//VSpacer{Size: 20},
 									Label{
-										Text:      "目标地址:",
+										Text:      "DNS地址:",
 										TextColor: walk.RGB(91, 92, 96),
 										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 									},
 									LineEdit{
-										AssignTo:    &p.targetIp,
+										AssignTo:    &p.dnsServerAddr,
 										TextColor:   walk.RGB(40, 40, 42),
 										Background:  TransparentBrush{},
 										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-										ToolTipText: "请输入目标地址",
+										Text:        "默认",
+										ToolTipText: "请输入DNS地址",
 										MinSize:     Size{Height: 36},
 										MaxSize:     Size{Height: 36},
 										OnKeyPress: func(key walk.Key) {
 											if key == walk.KeyTab || key == walk.KeyReturn {
-												_ = p.targetPort.SetFocus()
+												_ = p.parserDomain.SetFocus()
 											}
 										},
 									},
 									//VSpacer{Size: 20},
 									Label{
-										Text:      "目标端口:",
+										Text:      "解析域名:",
 										TextColor: walk.RGB(91, 92, 96),
 										Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 									},
 									LineEdit{
-										AssignTo:    &p.targetPort,
+										AssignTo:    &p.parserDomain,
 										TextColor:   walk.RGB(40, 40, 42),
 										Background:  TransparentBrush{},
 										Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-										ToolTipText: "请输入目标端口",
+										ToolTipText: "请输入解析域名",
 										MinSize:     Size{Height: 36},
 										MaxSize:     Size{Height: 36},
 										OnKeyPress: func(key walk.Key) {
@@ -189,14 +153,14 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
 												MinSize:  Size{Height: 36},
 												MaxSize:  Size{Height: 36},
-												Text:     "连接",
+												Text:     "解析",
 												OnClicked: func() {
-													p.normalDial()
+													p.normalDns()
 												},
 												//OnKeyPress: func(key walk.Key) {
 												//	fmt.Println(key)
 												//	if key == walk.KeyReturn {
-												//		p.normalDial()
+												//		p.normalDns()
 												//	}
 												//},
 											},
@@ -206,8 +170,8 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												MaxSize: Size{Height: 36},
 												Text:    "清空",
 												OnClicked: func() {
-													_ = p.targetIp.SetText("")
-													_ = p.targetPort.SetText("")
+													_ = p.dnsServerAddr.SetText("")
+													_ = p.parserDomain.SetText("")
 												},
 											},
 										},
@@ -240,11 +204,6 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 									TextEdit{
 										Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
 										AssignTo: &p.convenientModeContent,
-										OnKeyPress: func(key walk.Key) {
-											if key == walk.KeyReturn {
-												_ = p.subButton.Checked()
-											}
-										},
 									},
 									Composite{
 										StretchFactor: 1,
@@ -263,9 +222,9 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
 												MinSize:  Size{Height: 36},
 												MaxSize:  Size{Height: 36},
-												Text:     "检测",
+												Text:     "解析",
 												OnClicked: func() {
-													p.convenientDial()
+													p.convenientDns()
 												},
 											},
 											PushButton{
@@ -352,11 +311,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 	if err := walk.InitWrapperWindow(p); err != nil {
 		return nil, err
 	}
-	p.logicControl = tcp_udp.New()
-	err := p.iFaceList.SetModel(createIFaceList(p.logicControl.GetIFaceList()))
-	if err != nil {
-		wlog.Warm("p.iFaceList.SetModel failed: %v", err)
-	}
+	p.logicControl = dns.New()
 	return p, nil
 }
 

@@ -3,6 +3,7 @@ package walkUI
 import (
 	"bytes"
 	"useful-tools/module/walk_ui/common"
+	"useful-tools/module/walk_ui/dns"
 	"useful-tools/module/walk_ui/proxy"
 	"useful-tools/module/walk_ui/tcp_udp"
 
@@ -331,7 +332,7 @@ func New() *AppMainWindow {
 		PageCfgs: []PageConfig{
 			{"代理检测", "link.png", proxy.NewPage},
 			{"端口检测", "document-properties.png", tcp_udp.NewPage},
-			{"DNS", "system-shutdown.png", proxy.NewPage},
+			{"DNS", "system-shutdown.png", dns.NewPage},
 		},
 	}
 
