@@ -24,15 +24,6 @@ type Page struct {
 	convenientModeContent *walk.TextEdit
 }
 
-type CompanyItem struct {
-	Name          string
-	CompanyId     int
-	UserTitleType int
-	Key           int
-	UserId        int
-	//BindMsg string
-}
-
 func (p *Page) normalCheckProxy() {
 	Go.Go(func() {
 		checkProxy, err := p.logicControl.NormalCheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text())
@@ -390,8 +381,8 @@ func convenientModeState(mode bool) Property {
 	return mode
 }
 
-func getProxyType() []*CompanyItem {
-	return []*CompanyItem{
+func getProxyType() []*common.CompanyItem {
+	return []*common.CompanyItem{
 		{Key: 1, Name: "SOCKS5"},
 		{Key: 2, Name: "SSL"},
 		{Key: 3, Name: "SSH"},

@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/astaxie/beego/utils"
+
 	"github.com/astaxie/beego/logs"
 	jsoniter "github.com/json-iterator/go"
 )
@@ -31,7 +33,7 @@ func init() {
 
 func NewLog(logPath string, level string) {
 	dir := strings.Trim(strings.Trim(logPath, "/"), "\\")
-	if !IsExist(dir) {
+	if !utils.FileExists(dir) {
 		_ = os.MkdirAll(dir, 0666)
 	}
 	logPath = filepath.Join(dir, "parser-tool.log")
@@ -79,16 +81,4 @@ func Debug(format string, args ...interface{}) {
 
 func Info(format string, args ...interface{}) {
 	log.Info(format, args)
-}
-
-func IsExist(filepath string) bool {
-	_, err := os.Stat(filepath)
-	if err == nil {
-		return true
-	}
-	//mac
-	if strings.Contains(err.Error(), "file name too long") {
-		return false
-	}
-	return !os.IsNotExist(err)
 }

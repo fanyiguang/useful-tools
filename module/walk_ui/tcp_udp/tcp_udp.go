@@ -23,15 +23,6 @@ type Page struct {
 	convenientModeContent *walk.TextEdit
 }
 
-type CompanyItem struct {
-	Name          string
-	CompanyId     int
-	UserTitleType int
-	Key           int
-	UserId        int
-	//BindMsg string
-}
-
 func (p *Page) normalDial() {
 	Go.Go(func() {
 		_, err := p.logicControl.NormalDial(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
@@ -131,7 +122,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 										Font:          Font{PointSize: 16},
 										AssignTo:      &p.iFaceList,
 										Value:         1,
-										Model:         getIFaceList(),
+										Model:         getDefaultIFaceList(),
 										DisplayMember: "Name",
 										BindingMember: "Key",
 										OnKeyPress: func(key walk.Key) {
@@ -357,6 +348,10 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 		return nil, err
 	}
 	p.logicControl = tcp_udp.New()
+	err := p.iFaceList.SetModel(createIFaceList(p.logicControl.GetIFaceList()))
+	if err != nil {
+		wlog.Warm("p.iFaceList.SetModel failed: %v", err)
+	}
 	return p, nil
 }
 
@@ -368,15 +363,26 @@ func convenientModeState(mode bool) Property {
 	return mode
 }
 
-func getNetwork() []*CompanyItem {
-	return []*CompanyItem{
+func getNetwork() []*common.CompanyItem {
+	return []*common.CompanyItem{
 		{Key: 1, Name: "TCP"},
 		{Key: 2, Name: "UDP"},
 	}
 }
 
-func getIFaceList() []*CompanyItem {
-	return []*CompanyItem{
+func getDefaultIFaceList() []*common.CompanyItem {
+	return []*common.CompanyItem{
 		{Key: 1, Name: "随机"},
 	}
+}
+
+func createIFaceList(ips []string) []*common.CompanyItem {
+	list := getDefaultIFaceList()
+	for i, ip := range ips {
+		list = append(list, &common.CompanyItem{
+			Name: ip,
+			Key:  i + 1,
+		})
+	}
+	return list
 }

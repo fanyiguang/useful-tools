@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"useful-tools/common/config"
 	mySsl "useful-tools/pkg/ssl"
 	"useful-tools/pkg/wlog"
 
@@ -174,7 +175,7 @@ func sendRequest(httpClient *http.Client) (res string, err error) {
 			}
 
 			body, _ := ioutil.ReadAll(resp.Body)
-			compile := regexp.MustCompile(RegIpRule)
+			compile := regexp.MustCompile(config.GetRegIpRule())
 			strBody := string(body)
 			Ip := compile.FindString(strings.TrimSpace(strBody))
 			if Ip != "" {
