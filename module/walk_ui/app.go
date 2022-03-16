@@ -2,6 +2,8 @@ package walkUI
 
 import (
 	"bytes"
+	"useful-tools/helper/Go"
+	"useful-tools/helper/proc"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/dns"
 	"useful-tools/module/walk_ui/proxy"
@@ -253,6 +255,12 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		mpmw.CurrentPageChanged().Attach(cfg.OnCurrentPageChanged)
 	}
 
+	icon, err := walk.Resources.Icon("vps.png")
+	if err == nil {
+		mpmw.SetIcon(icon)
+	}
+	common.WinCenter(mpmw.Handle())
+
 	succeeded = true
 
 	return mpmw, nil
@@ -266,7 +274,7 @@ func (mw *AppMainWindow) updateTitle(prefix string) {
 		buf.WriteString(" - ")
 	}
 
-	buf.WriteString("Walk Multiple Pages Example")
+	buf.WriteString("useful-tools")
 
 	mw.SetTitle(buf.String())
 }
@@ -283,8 +291,6 @@ func (mw *AppMainWindow) openAction_Triggered() {
 }
 
 func New() *AppMainWindow {
-	walk.Resources.SetRootDirPath(`D:\study\zixun\go_gui_walk\examples\img`)
-
 	mw := new(AppMainWindow)
 	cfg := &MultiPageMainWindowConfig{
 		Name:    "mainWindow",
@@ -293,7 +299,7 @@ func New() *AppMainWindow {
 		Size:    Size{500, 500},
 		MenuItems: []MenuItem{
 			Menu{
-				Text: "View",
+				Text: "视图",
 				Items: []MenuItem{
 					Action{
 						AssignTo: &ConvenientModeMenu,
@@ -313,15 +319,23 @@ func New() *AppMainWindow {
 				},
 			},
 			Menu{
-				Text: "Help",
+				Text: "帮助",
 				Items: []MenuItem{
 					Action{
-						Text:        "反馈",
-						OnTriggered: func() { mw.aboutAction_Triggered() },
+						Text: "反馈",
+						OnTriggered: func() {
+							Go.Go(func() {
+								_ = proc.RunProcByWin32Api(`https://github.com/fanyiguang/useful-tools/issues`, true)
+							})
+						},
 					},
 					Action{
-						Text:        "点赞",
-						OnTriggered: func() { mw.openAction_Triggered() },
+						Text: "帮助",
+						OnTriggered: func() {
+							Go.Go(func() {
+								_ = proc.RunProcByWin32Api(`https://github.com/fanyiguang/useful-tools`, true)
+							})
+						},
 					},
 				},
 			},
@@ -330,9 +344,9 @@ func New() *AppMainWindow {
 			mw.updateTitle(mw.CurrentPageTitle())
 		},
 		PageCfgs: []PageConfig{
-			{"代理检测", "link.png", proxy.NewPage},
-			{"端口检测", "document-properties.png", tcp_udp.NewPage},
-			{"DNS", "system-shutdown.png", dns.NewPage},
+			{"代理检测", "proxy.png", proxy.NewPage},
+			{"端口检测", "tcp_udp.png", tcp_udp.NewPage},
+			{"DNS检测", "dns.png", dns.NewPage},
 		},
 	}
 

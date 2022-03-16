@@ -3,6 +3,7 @@ module useful-tools
 go 1.17
 
 require (
+	github.com/CodyGuo/win v0.0.0-20170113125346-08e6b7208274
 	github.com/astaxie/beego v1.12.3
 	github.com/json-iterator/go v1.1.12
 	github.com/lxn/walk v0.0.0-20210112085537-c389da54e794
@@ -10,6 +11,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	golang.org/x/crypto v0.0.0-20220313003712-b769efc7c000
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
+	golang.org/x/text v0.3.7
 )
 
 require (

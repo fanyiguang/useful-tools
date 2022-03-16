@@ -5,12 +5,15 @@ import (
 	"strings"
 	"useful-tools/helper/net"
 	"useful-tools/helper/sys"
+	"useful-tools/module/logic/base"
+	"useful-tools/module/logic/common"
 	"useful-tools/pkg/wlog"
 
 	"github.com/pkg/errors"
 )
 
 type TcpUdp struct {
+	base.Base
 }
 
 func New() *TcpUdp {
@@ -18,6 +21,13 @@ func New() *TcpUdp {
 }
 
 func (t *TcpUdp) NormalDial(network, iFace, targetIp, targetPort string) (isSuccess bool, err error) {
+	if t.IsExecuting() {
+		err = common.ExecutingError
+		return
+	}
+
+	t.SetExecuting()
+	defer t.ResetExecuting()
 	wlog.Info(network, iFace, targetIp, targetPort)
 	switch network {
 	case "TCP":
@@ -47,6 +57,13 @@ func (t *TcpUdp) Dial(network, ip, port string) (isSuccess bool, err error) {
 }
 
 func (t *TcpUdp) ConvenientDial(netInfo string) (isSuccess bool, err error) {
+	if t.IsExecuting() {
+		err = common.ExecutingError
+		return
+	}
+
+	t.SetExecuting()
+	defer t.ResetExecuting()
 	netInfos := strings.Split(netInfo, ":")
 	if len(netInfos) < 2 {
 		err = errors.Wrap(errors.New("Parameter exception"), "")

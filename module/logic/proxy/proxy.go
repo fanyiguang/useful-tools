@@ -4,13 +4,14 @@ import (
 	"regexp"
 	"strings"
 	"useful-tools/helper/str"
+	"useful-tools/module/logic/base"
 	"useful-tools/module/logic/common"
 	"useful-tools/pkg/proxy"
 )
 
 type Proxy struct {
+	base.Base
 	paramsNumber     int
-	executing        bool
 	proxyInfoRegRule string
 }
 
@@ -19,18 +20,6 @@ func New() *Proxy {
 		paramsNumber:     5,
 		proxyInfoRegRule: `^(.+)://(.*):(.*)@(.+):(.+)$`,
 	}
-}
-
-func (p *Proxy) IsExecuting() bool {
-	return p.executing
-}
-
-func (p *Proxy) SetExecuting() {
-	p.executing = true
-}
-
-func (p *Proxy) ResetExecuting() {
-	p.executing = false
 }
 
 func (p *Proxy) NormalCheckProxy(ip, port, username, password, proxyType string) (content string, err error) {
