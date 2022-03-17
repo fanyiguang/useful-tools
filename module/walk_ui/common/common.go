@@ -17,3 +17,10 @@ func WinCenter(handle win.HWND) {
 		win.MoveWindow(handle, rect.Left, rect.Top, rect.Right, rect.Bottom, true) // 居中
 	}
 }
+
+func WinReSize(handle win.HWND, width int32, height int32) {
+	var rect win.RECT
+	if win.GetWindowRect(handle, &rect) {
+		win.MoveWindow(handle, rect.Left, rect.Top, width, height, true)
+	}
+}

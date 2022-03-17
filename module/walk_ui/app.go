@@ -2,12 +2,17 @@ package walkUI
 
 import (
 	"bytes"
+	"fmt"
 	"useful-tools/helper/Go"
 	"useful-tools/helper/proc"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/dns"
 	"useful-tools/module/walk_ui/proxy"
+	"useful-tools/module/walk_ui/systray"
 	"useful-tools/module/walk_ui/tcp_udp"
+	"useful-tools/pkg/wlog"
+
+	"github.com/lxn/win"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
@@ -28,6 +33,7 @@ type MultiPageMainWindow struct {
 	currentAction               *walk.Action
 	currentPage                 common.Page
 	currentPageChangedPublisher walk.EventPublisher
+	systrayMainWindow           *walk.MainWindow
 }
 
 type AppMainWindow struct {
@@ -225,6 +231,12 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		return nil, err
 	}
 
+	var handleClosing int
+	handleClosing = mpmw.MainWindow.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
+		fmt.Println("关闭ing")
+		mpmw.MainWindow.Closing().Detach(handleClosing)
+	})
+
 	succeeded := false
 	defer func() {
 		if !succeeded {
@@ -260,9 +272,26 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		mpmw.SetIcon(icon)
 	}
 	common.WinCenter(mpmw.Handle())
+	win.RemoveMenu(win.GetSystemMenu(mpmw.MainWindow.Handle(), false), win.SC_SIZE, win.MF_BYCOMMAND)
+	currStyle := win.GetWindowLong(mpmw.MainWindow.Handle(), win.GWL_STYLE)
+	win.SetWindowLong(mpmw.MainWindow.Handle(), win.GWL_STYLE, currStyle&^win.WS_MAXIMIZEBOX) //禁用最大化
+	mpmw.MainWindow.Activating().Attach(func() {
+		common.WinReSize(mpmw.MainWindow.Handle(), 912, 592)
+	})
 
+	mpmw.systrayMainWindow = systray.New(func() {
+		if mpmw != nil {
+			mpmw.Hide()
+		}
+	}, func() {
+		if mpmw != nil {
+			err := mpmw.Activate()
+			if err != nil {
+				wlog.Warm("mpmw.Activate() failed: %v", err)
+			}
+		}
+	})
 	succeeded = true
-
 	return mpmw, nil
 }
 
