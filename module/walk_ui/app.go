@@ -10,7 +10,6 @@ import (
 	"useful-tools/module/walk_ui/proxy"
 	"useful-tools/module/walk_ui/systray"
 	"useful-tools/module/walk_ui/tcp_udp"
-	"useful-tools/pkg/wlog"
 
 	"github.com/lxn/win"
 
@@ -285,10 +284,7 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		}
 	}, func() {
 		if mpmw != nil {
-			err := mpmw.Activate()
-			if err != nil {
-				wlog.Warm("mpmw.Activate() failed: %v", err)
-			}
+			mpmw.Show()
 		}
 	})
 	succeeded = true
