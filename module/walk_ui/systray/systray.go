@@ -46,10 +46,15 @@ func initSystray(form walk.Form, closeActionHandle func(), openActionHandle func
 	}
 
 	icon, err := walk.Resources.Image("./logo.png")
-	fmt.Println(icon, err)
 	if icon != nil {
 		err = ni.SetIcon(icon)
 	}
+
+	ni.MouseUp().Attach(func(x, y int, button walk.MouseButton) {
+		if button == win.MK_LBUTTON {
+			openActionHandle()
+		}
+	})
 
 	openAction := walk.NewAction()
 	_ = openAction.SetText("打开面板")

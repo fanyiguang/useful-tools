@@ -2,7 +2,6 @@ package walkUI
 
 import (
 	"bytes"
-	"fmt"
 	"useful-tools/helper/Go"
 	"useful-tools/helper/proc"
 	"useful-tools/module/walk_ui/common"
@@ -10,8 +9,6 @@ import (
 	"useful-tools/module/walk_ui/proxy"
 	"useful-tools/module/walk_ui/systray"
 	"useful-tools/module/walk_ui/tcp_udp"
-
-	"github.com/lxn/win"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
@@ -232,7 +229,6 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 
 	var handleClosing int
 	handleClosing = mpmw.MainWindow.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
-		fmt.Println("关闭ing")
 		mpmw.MainWindow.Closing().Detach(handleClosing)
 	})
 
@@ -266,25 +262,31 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		mpmw.CurrentPageChanged().Attach(cfg.OnCurrentPageChanged)
 	}
 
-	icon, err := walk.Resources.Icon("vps.png")
-	if err == nil {
-		mpmw.SetIcon(icon)
-	}
+	//icon, err := walk.Resources.Icon("vps.png")
+	//if err == nil {
+	//	mpmw.SetIcon(icon)
+	//}
 	common.WinCenter(mpmw.Handle())
-	win.RemoveMenu(win.GetSystemMenu(mpmw.MainWindow.Handle(), false), win.SC_SIZE, win.MF_BYCOMMAND)
-	currStyle := win.GetWindowLong(mpmw.MainWindow.Handle(), win.GWL_STYLE)
-	win.SetWindowLong(mpmw.MainWindow.Handle(), win.GWL_STYLE, currStyle&^win.WS_MAXIMIZEBOX) //禁用最大化
-	mpmw.MainWindow.Activating().Attach(func() {
-		common.WinReSize(mpmw.MainWindow.Handle(), 912, 592)
-	})
+	//win.RemoveMenu(win.GetSystemMenu(mpmw.MainWindow.Handle(), false), win.SC_SIZE, win.MF_BYCOMMAND)
+	//currStyle := win.GetWindowLong(mpmw.MainWindow.Handle(), win.GWL_STYLE)
+	//win.SetWindowLong(mpmw.MainWindow.Handle(), win.GWL_STYLE, currStyle&^win.WS_MAXIMIZEBOX) //禁用最大化
+	//mpmw.MainWindow.Activating().Attach(func() {
+	//	common.WinReSize(mpmw.MainWindow.Handle(), 912, 592)
+	//})
 
 	mpmw.systrayMainWindow = systray.New(func() {
 		if mpmw != nil {
-			mpmw.Hide()
+			_ = mpmw.systrayMainWindow.Close()
 		}
 	}, func() {
 		if mpmw != nil {
 			mpmw.Show()
+		}
+	})
+	mpmw.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
+		if reason == walk.CloseReasonUnknown {
+			*canceled = true // 阻止系统关闭事件
+			mpmw.Hide()      // 改为隐藏
 		}
 	})
 	succeeded = true
@@ -315,13 +317,13 @@ func (mw *AppMainWindow) openAction_Triggered() {
 	walk.MsgBox(mw, "Open", "Pretend to open a file...", walk.MsgBoxIconInformation)
 }
 
-func New() *AppMainWindow {
+func New() *walk.MainWindow {
 	mw := new(AppMainWindow)
 	cfg := &MultiPageMainWindowConfig{
-		Name:    "mainWindow",
-		MinSize: Size{500, 500},
-		MaxSize: Size{500, 500},
-		Size:    Size{500, 500},
+		Name: "mainWindow",
+		//MinSize: Size{1000, 550},
+		//MaxSize: Size{1000, 550},
+		Size: Size{1000, 550},
 		MenuItems: []MenuItem{
 			Menu{
 				Text: "视图",
@@ -392,5 +394,5 @@ func New() *AppMainWindow {
 
 	mw.MultiPageMainWindow = mpmw
 	mw.updateTitle(mw.CurrentPageTitle())
-	return mw
+	return mw.systrayMainWindow
 }
