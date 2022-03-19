@@ -4,6 +4,7 @@ import (
 	"log"
 	"useful-tools/helper/Go"
 	"useful-tools/module/logic/tcp_udp"
+	"useful-tools/module/walk_ui/base"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/pkg/wlog"
 
@@ -13,6 +14,7 @@ import (
 
 type Page struct {
 	*walk.Composite
+	serializable          *base.Serializable
 	logicControl          *tcp_udp.TcpUdp
 	network               *walk.ComboBox
 	iFaceList             *walk.ComboBox
@@ -24,25 +26,35 @@ type Page struct {
 }
 
 func (p *Page) normalDial() {
+	encodeParams := p.serializable.Set(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
 	Go.Go(func() {
-		_, err := p.logicControl.NormalDial(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
-		if err != nil {
-			wlog.Warm("p.logicControl.NormalDial failed: %+v", err)
-			p.PrintContent(err.Error())
+		_, err := p.logicControl.NormalDial(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text(), true)
+		if p.serializable.Equal(encodeParams) {
+			if err != nil {
+				wlog.Warm("p.logicControl.NormalDial failed: %+v", err)
+				p.PrintContent(err.Error())
+			} else {
+				p.PrintContent("OK")
+			}
 		} else {
-			p.PrintContent("OK")
+			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.serializable.Get())
 		}
 	})
 }
 
 func (p *Page) convenientDial() {
+	encodeParams := p.serializable.Set(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
 	Go.Go(func() {
 		_, err := p.logicControl.ConvenientDial(p.convenientModeContent.Text())
-		if err != nil {
-			wlog.Warm("p.logicControl.ConvenientDial failed: %+v", err)
-			p.PrintContent(err.Error())
+		if p.serializable.Equal(encodeParams) {
+			if err != nil {
+				wlog.Warm("p.logicControl.ConvenientDial failed: %+v", err)
+				p.PrintContent(err.Error())
+			} else {
+				p.PrintContent("OK")
+			}
 		} else {
-			p.PrintContent("OK")
+			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.serializable.Get())
 		}
 	})
 }
@@ -89,7 +101,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title: "Gradient Parameters",
+								Title: "Parameters",
 								Layout: Grid{
 									Rows: 12,
 								},
@@ -234,7 +246,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title:  "Gradient Parameters",
+								Title:  "Parameters",
 								Layout: VBox{},
 								Children: []Widget{
 									TextEdit{
@@ -296,7 +308,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title:  "Gradient Parameters",
+								Title:  "View",
 								Layout: VBox{},
 								Children: []Widget{
 									TextEdit{
@@ -353,6 +365,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 		return nil, err
 	}
 	p.logicControl = tcp_udp.New()
+	p.serializable = base.NewSerializable()
 	err := p.iFaceList.SetModel(createIFaceList(p.logicControl.GetIFaceList()))
 	if err != nil {
 		wlog.Warm("p.iFaceList.SetModel failed: %v", err)

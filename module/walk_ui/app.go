@@ -262,12 +262,12 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		mpmw.CurrentPageChanged().Attach(cfg.OnCurrentPageChanged)
 	}
 
-	//icon, err := walk.Resources.Icon("vps.png")
-	//if err == nil {
-	//	mpmw.SetIcon(icon)
-	//}
+	icon, err := walk.Resources.Image("icon.png")
+	if err == nil {
+		_ = mpmw.SetIcon(icon)
+	}
 	common.WinCenter(mpmw.Handle())
-	//win.RemoveMenu(win.GetSystemMenu(mpmw.MainWindow.Handle(), false), win.SC_SIZE, win.MF_BYCOMMAND)
+	//win.RemoveMenu(win.GetSystemMenu(mpmw.Handle(), false), win.SC_SIZE, win.MF_BYCOMMAND)  //禁止改变窗体大小
 	//currStyle := win.GetWindowLong(mpmw.MainWindow.Handle(), win.GWL_STYLE)
 	//win.SetWindowLong(mpmw.MainWindow.Handle(), win.GWL_STYLE, currStyle&^win.WS_MAXIMIZEBOX) //禁用最大化
 	//mpmw.MainWindow.Activating().Attach(func() {
@@ -320,10 +320,10 @@ func (mw *AppMainWindow) openAction_Triggered() {
 func New() *walk.MainWindow {
 	mw := new(AppMainWindow)
 	cfg := &MultiPageMainWindowConfig{
-		Name: "mainWindow",
-		//MinSize: Size{1000, 550},
-		//MaxSize: Size{1000, 550},
-		Size: Size{1000, 550},
+		Name:    "mainWindow",
+		MinSize: Size{1000, 550},
+		MaxSize: Size{1000, 550},
+		Size:    Size{1000, 550},
 		MenuItems: []MenuItem{
 			Menu{
 				Text: "视图",

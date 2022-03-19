@@ -4,6 +4,7 @@ import (
 	"log"
 	"useful-tools/helper/Go"
 	"useful-tools/module/logic/proxy"
+	"useful-tools/module/walk_ui/base"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/pkg/wlog"
 
@@ -13,6 +14,7 @@ import (
 
 type Page struct {
 	*walk.Composite
+	serializable          *base.Serializable
 	logicControl          *proxy.Proxy
 	proxyType             *walk.ComboBox
 	proxyIp               *walk.LineEdit
@@ -25,31 +27,41 @@ type Page struct {
 }
 
 func (p *Page) normalCheckProxy() {
+	encodeParams := p.serializable.Set(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text())
 	Go.Go(func() {
 		checkProxy, err := p.logicControl.NormalCheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text())
-		if err != nil {
-			wlog.Warm("p.logicControl.NormalCheckProxy failed: %+v", err)
-			p.PrintContent(err.Error())
+		if p.serializable.Equal(encodeParams) {
+			if err != nil {
+				wlog.Warm("p.logicControl.NormalCheckProxy failed: %+v", err)
+				p.PrintContent(err.Error())
+			} else {
+				p.PrintContent(checkProxy)
+			}
 		} else {
-			p.PrintContent(checkProxy)
+			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.serializable.Get())
 		}
 	})
 }
 
 func (p *Page) convenientCheckProxy() {
+	encodeParams := p.serializable.Set(p.convenientModeContent.Text())
 	Go.Go(func() {
 		checkProxy, err := p.logicControl.ConvenientCheckProxy(p.convenientModeContent.Text())
-		if err != nil {
-			wlog.Warm("p.logicControl.ConvenientCheckProxy failed: %+v", err)
-			p.PrintContent(err.Error())
+		if p.serializable.Equal(encodeParams) {
+			if err != nil {
+				wlog.Warm("p.logicControl.ConvenientCheckProxy failed: %+v", err)
+				p.PrintContent(err.Error())
+			} else {
+				p.PrintContent(checkProxy)
+			}
 		} else {
-			p.PrintContent(checkProxy)
+			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.serializable.Get())
 		}
 	})
 }
 
 func (p *Page) PrintContent(content string) {
-	p.viewContent.SetText(content)
+	_ = p.viewContent.SetText(content)
 }
 
 func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) {
@@ -90,7 +102,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title: "Gradient Parameters",
+								Title: "Parameters",
 								Layout: Grid{
 									Rows: 12,
 								},
@@ -258,7 +270,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title:  "Gradient Parameters",
+								Title:  "Parameters",
 								Layout: VBox{},
 								Children: []Widget{
 									TextEdit{
@@ -320,7 +332,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title:  "Gradient Parameters",
+								Title:  "View",
 								Layout: VBox{},
 								Children: []Widget{
 									TextEdit{
@@ -377,6 +389,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 		return nil, err
 	}
 	p.logicControl = proxy.New()
+	p.serializable = base.NewSerializable()
 	return p, nil
 }
 

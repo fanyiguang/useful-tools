@@ -24,6 +24,7 @@ import (
 )
 
 func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
+	wlog.Info("proxyInfo: %v", proxyInfo)
 	if len(proxyInfo) != 5 {
 		err = errors.New("proxyInfo params number neq 5")
 		return
@@ -189,7 +190,7 @@ func sendRequest(httpClient *http.Client) (res string, err error) {
 
 	select {
 	case res = <-resCh:
-	case <-time.After(33 * time.Second):
+	case <-time.After(15 * time.Second):
 		err = errors.Wrap(errors.New("http request timeout"), "")
 	}
 	return

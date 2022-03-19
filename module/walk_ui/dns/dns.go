@@ -5,6 +5,7 @@ import (
 	"strings"
 	"useful-tools/helper/Go"
 	"useful-tools/module/logic/dns"
+	"useful-tools/module/walk_ui/base"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/pkg/wlog"
 
@@ -14,6 +15,7 @@ import (
 
 type Page struct {
 	*walk.Composite
+	serializable          *base.Serializable
 	logicControl          *dns.Dns
 	dnsServerAddr         *walk.LineEdit
 	parserDomain          *walk.LineEdit
@@ -23,25 +25,35 @@ type Page struct {
 }
 
 func (p *Page) normalDns() {
+	encodeParams := p.serializable.Set(p.dnsServerAddr.Text(), p.parserDomain.Text())
 	Go.Go(func() {
 		ips, err := p.logicControl.NormalDns(p.dnsServerAddr.Text(), p.parserDomain.Text())
-		if err != nil {
-			wlog.Warm("p.logicControl.NormalDns failed: %+v", err)
-			p.PrintContent(err.Error())
+		if p.serializable.Equal(encodeParams) {
+			if err != nil {
+				wlog.Warm("p.logicControl.NormalDns failed: %+v", err)
+				p.PrintContent(err.Error())
+			} else {
+				p.PrintContent(strings.Join(ips, "\r\n"))
+			}
 		} else {
-			p.PrintContent(strings.Join(ips, "\r\n"))
+			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.serializable.Get())
 		}
 	})
 }
 
 func (p *Page) convenientDns() {
+	encodeParams := p.serializable.Set(p.convenientModeContent.Text())
 	Go.Go(func() {
 		ips, err := p.logicControl.ConvenientDns(p.convenientModeContent.Text())
-		if err != nil {
-			wlog.Warm("p.logicControl.ConvenientDns failed: %+v", err)
-			p.PrintContent(err.Error())
+		if p.serializable.Equal(encodeParams) {
+			if err != nil {
+				wlog.Warm("p.logicControl.ConvenientDns failed: %+v", err)
+				p.PrintContent(err.Error())
+			} else {
+				p.PrintContent(strings.Join(ips, "\r\n"))
+			}
 		} else {
-			p.PrintContent(strings.Join(ips, "\r\n"))
+			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.serializable.Get())
 		}
 	})
 }
@@ -88,7 +100,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title: "Gradient Parameters",
+								Title: "Parameters",
 								Layout: Grid{
 									Rows: 12,
 								},
@@ -198,7 +210,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title:  "Gradient Parameters",
+								Title:  "Parameters",
 								Layout: VBox{},
 								Children: []Widget{
 									TextEdit{
@@ -255,7 +267,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title:  "Gradient Parameters",
+								Title:  "View",
 								Layout: VBox{},
 								Children: []Widget{
 									TextEdit{
@@ -312,6 +324,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 		return nil, err
 	}
 	p.logicControl = dns.New()
+	p.serializable = base.NewSerializable()
 	return p, nil
 }
 

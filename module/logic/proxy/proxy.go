@@ -5,7 +5,6 @@ import (
 	"strings"
 	"useful-tools/helper/str"
 	"useful-tools/module/logic/base"
-	"useful-tools/module/logic/common"
 	"useful-tools/pkg/proxy"
 )
 
@@ -23,25 +22,25 @@ func New() *Proxy {
 }
 
 func (p *Proxy) NormalCheckProxy(ip, port, username, password, proxyType string) (content string, err error) {
-	if p.IsExecuting() {
-		err = common.ExecutingError
-		return
-	}
-
-	p.SetExecuting()
-	defer p.ResetExecuting()
+	//if p.IsExecuting() {
+	//	err = common.ExecutingError
+	//	return
+	//}
+	//
+	//p.SetExecuting()
+	//defer p.ResetExecuting()
 	return proxy.SendHttpRequestByProxy(str.TrimStringSpace(proxyType, username, password, ip, port)...)
 }
 
 func (p *Proxy) ConvenientCheckProxy(convenientModeContent string) (content string, err error) {
-	if p.IsExecuting() {
-		err = common.ExecutingError
-		return
-	}
-
-	p.SetExecuting()
-	defer p.ResetExecuting()
-	return proxy.SendHttpRequestByProxy(p.parserConvenientModeContent(convenientModeContent)...)
+	//if p.IsExecuting() {
+	//	err = common.ExecutingError
+	//	return
+	//}
+	//
+	//p.SetExecuting()
+	//defer p.ResetExecuting()
+	return proxy.SendHttpRequestByProxy(p.parserConvenientModeContent(strings.TrimSpace(convenientModeContent))...)
 }
 
 func (p *Proxy) parserConvenientModeContent(content string) (proxyInfo []string) {

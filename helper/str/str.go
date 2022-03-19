@@ -8,3 +8,7 @@ func TrimStringSpace(list ...string) (newList []string) {
 	}
 	return
 }
+
+func TrimInvalidCharacter(str string) string {
+	return strings.TrimSpace(str)
+}

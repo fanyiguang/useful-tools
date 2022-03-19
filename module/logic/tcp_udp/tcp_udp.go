@@ -20,8 +20,8 @@ func New() *TcpUdp {
 	return &TcpUdp{}
 }
 
-func (t *TcpUdp) NormalDial(network, iFace, targetIp, targetPort string) (isSuccess bool, err error) {
-	if t.IsExecuting() {
+func (t *TcpUdp) NormalDial(network, iFace, targetIp, targetPort string, isCheckExecuting bool) (isSuccess bool, err error) {
+	if isCheckExecuting && t.IsExecuting() {
 		err = common.ExecutingError
 		return
 	}
@@ -71,10 +71,10 @@ func (t *TcpUdp) ConvenientDial(netInfo string) (isSuccess bool, err error) {
 	}
 
 	if len(netInfos) == 2 {
-		return t.NormalDial("tcp", "随机", netInfos[0], netInfos[1])
+		return t.NormalDial("tcp", "随机", netInfos[0], netInfos[1], false)
 	}
 
-	return t.NormalDial(netInfos[0], "随机", netInfos[1], netInfos[2])
+	return t.NormalDial(netInfos[0], "随机", netInfos[1], netInfos[2], false)
 }
 
 func (t *TcpUdp) GetIFaceList() (list []string) {

@@ -1,6 +1,8 @@
 package common
 
-import "github.com/lxn/win"
+import (
+	"github.com/lxn/win"
+)
 
 func WinCenter(handle win.HWND) {
 	var rect win.RECT
