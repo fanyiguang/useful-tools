@@ -1,7 +1,12 @@
 package common
 
 import (
+	"github.com/lxn/walk"
 	"github.com/lxn/win"
+)
+
+var (
+	ConvenientModeMenu *walk.Action
 )
 
 func WinCenter(handle win.HWND) {

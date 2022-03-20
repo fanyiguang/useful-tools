@@ -2,26 +2,26 @@ package walkUI
 
 import (
 	"bytes"
+	"fmt"
 	"useful-tools/helper/Go"
 	"useful-tools/helper/proc"
+	"useful-tools/module/logic/app"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/dns"
 	"useful-tools/module/walk_ui/proxy"
 	"useful-tools/module/walk_ui/systray"
 	"useful-tools/module/walk_ui/tcp_udp"
+	"useful-tools/pkg/wlog"
 
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
-)
-
-var (
-	ConvenientModeMenu *walk.Action
 )
 
 type PageFactoryFunc func(parent walk.Container, IsConvenientMode bool) (common.Page, error)
 
 type MultiPageMainWindow struct {
 	*walk.MainWindow
+	logicControl                *app.App
 	navTB                       *walk.ToolBar
 	pageCom                     *walk.Composite
 	action2NewPage              map[*walk.Action]PageFactoryFunc
@@ -30,6 +30,7 @@ type MultiPageMainWindow struct {
 	currentPage                 common.Page
 	currentPageChangedPublisher walk.EventPublisher
 	systrayMainWindow           *walk.MainWindow
+	//convenientModeMenu          *walk.Action
 }
 
 type AppMainWindow struct {
@@ -120,7 +121,7 @@ func (mpmw *MultiPageMainWindow) setCurrentAction(action *walk.Action) error {
 
 	newPage := mpmw.action2NewPage[action]
 
-	page, err := newPage(mpmw.pageCom, ConvenientModeMenu.Checked())
+	page, err := newPage(mpmw.pageCom, common.ConvenientModeMenu.Checked())
 	if err != nil {
 		return err
 	}
@@ -171,6 +172,7 @@ func (mpmw *MultiPageMainWindow) updateNavigationToolBar() error {
 func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindow, error) {
 	mpmw := &MultiPageMainWindow{
 		action2NewPage: make(map[*walk.Action]PageFactoryFunc),
+		logicControl:   app.New(),
 	}
 
 	if err := (MainWindow{
@@ -225,6 +227,13 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		},
 	}).Create(); err != nil {
 		return nil, err
+	}
+
+	state := mpmw.logicControl.GetViewModeState()
+	wlog.Debug("mpmw.logicControl.GetViewModeState(): %v", state)
+	fmt.Println("state:", state)
+	if state == 1 {
+		common.ConvenientModeMenu.SetChecked(true)
 	}
 
 	var handleClosing int
@@ -329,16 +338,18 @@ func New() *walk.MainWindow {
 				Text: "视图",
 				Items: []MenuItem{
 					Action{
-						AssignTo: &ConvenientModeMenu,
+						AssignTo: &common.ConvenientModeMenu,
 						Text:     "解析模式",
 						//Checked: Bind("openHiddenCB.Visible"),
 						Checked: false,
 						OnTriggered: func() {
-							switch ConvenientModeMenu.Checked() {
+							switch common.ConvenientModeMenu.Checked() {
 							case false:
-								_ = ConvenientModeMenu.SetChecked(true)
+								_ = common.ConvenientModeMenu.SetChecked(true)
+								mw.logicControl.SetViewModeState(1)
 							case true:
-								_ = ConvenientModeMenu.SetChecked(false)
+								_ = common.ConvenientModeMenu.SetChecked(false)
+								mw.logicControl.SetViewModeState(0)
 							}
 							_ = mw.setCurrentAction(mw.currentAction)
 						},

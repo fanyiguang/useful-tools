@@ -36,7 +36,7 @@ func NewLog(logPath string, level string) {
 	if !utils.FileExists(dir) {
 		_ = os.MkdirAll(dir, 0666)
 	}
-	logPath = filepath.Join(dir, "parser-tool.log")
+	logPath = filepath.Join(dir, "useful-tools.log")
 	config := Config{
 		Filename: logPath,
 		Level:    getLogsLevel(level),
