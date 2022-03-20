@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"useful-tools/helper/path"
@@ -22,7 +21,7 @@ func init() {
 	SetTempPath(filepath.Join(GetProjectsPath(), "temp"))
 	SetLogPath(filepath.Join(GetProjectsPath(), "log"))
 	SetSettingPath(filepath.Join(GetProjectsPath(), "setting"))
-	fmt.Println(GetTempPath(), GetLogPath(), GetProjectsPath(), GetSettingPath())
+	//fmt.Println(GetTempPath(), GetLogPath(), GetProjectsPath(), GetSettingPath())
 	if !utils.FileExists(GetTempPath()) {
 		_ = os.MkdirAll(GetTempPath(), 0666)
 	}

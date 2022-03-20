@@ -7,7 +7,7 @@ import (
 )
 
 func App() (err error) {
-	_ = walk.Resources.SetRootDirPath(`D:\study\zixun\go_gui_walk\examples\img`)
+	_ = walk.Resources.SetRootDirPath(`./resource`)
 	walkUI.New().Run()
 	return
 }

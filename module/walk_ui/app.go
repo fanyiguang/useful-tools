@@ -2,7 +2,6 @@ package walkUI
 
 import (
 	"bytes"
-	"fmt"
 	"useful-tools/helper/Go"
 	"useful-tools/helper/proc"
 	"useful-tools/module/logic/app"
@@ -30,7 +29,6 @@ type MultiPageMainWindow struct {
 	currentPage                 common.Page
 	currentPageChangedPublisher walk.EventPublisher
 	systrayMainWindow           *walk.MainWindow
-	//convenientModeMenu          *walk.Action
 }
 
 type AppMainWindow struct {
@@ -231,7 +229,6 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 
 	state := mpmw.logicControl.GetViewModeState()
 	wlog.Debug("mpmw.logicControl.GetViewModeState(): %v", state)
-	fmt.Println("state:", state)
 	if state == 1 {
 		common.ConvenientModeMenu.SetChecked(true)
 	}
