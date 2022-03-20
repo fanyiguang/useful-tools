@@ -13,5 +13,6 @@ var (
 		"http://lumtest.com/myip.json",
 		"https://checkip.amazonaws.com",
 		"http://myipip.net/",
+		"https://tools.ziniao.com/get_ip",
 	}
 )

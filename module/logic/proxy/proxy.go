@@ -63,7 +63,7 @@ func (p *Proxy) parserConvenientModeContent(content string) (proxyInfo []string)
 			}
 		}
 
-		if proxyType != "" && username != "" && password != "" && port != "" && ip != "" {
+		if proxyType != "" && port != "" && ip != "" {
 			proxyInfo = append(proxyInfo, proxyType, username, password, ip, port)
 			return
 		}

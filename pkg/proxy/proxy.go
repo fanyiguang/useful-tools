@@ -59,7 +59,12 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 	case SSL:
 		var dialer netProxy.Dialer
 		ssl := mySsl.DialSsl{}
-		dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), &netProxy.Auth{User: inputConfig.Username, Password: inputConfig.Password}, ssl)
+		if inputConfig.Username == "" || inputConfig.Password == "" {
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), nil, ssl)
+		} else {
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), &netProxy.Auth{User: inputConfig.Username, Password: inputConfig.Password}, ssl)
+		}
+
 		if err != nil {
 			err = errors.Wrap(err, "netProxy.SOCKS5-1")
 			return
@@ -75,7 +80,12 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 
 	case SOCKS5:
 		var dialer netProxy.Dialer
-		dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), &netProxy.Auth{User: inputConfig.Username, Password: inputConfig.Password}, netProxy.Direct)
+		if inputConfig.Username == "" || inputConfig.Password == "" {
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), nil, netProxy.Direct)
+		} else {
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), &netProxy.Auth{User: inputConfig.Username, Password: inputConfig.Password}, netProxy.Direct)
+		}
+
 		if err != nil {
 			err = errors.Wrap(err, "netProxy.SOCKS5-2")
 			return

@@ -28,7 +28,7 @@ type Page struct {
 func (p *Page) normalDial() {
 	encodeParams := p.serializable.Set(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
 	Go.Go(func() {
-		_, err := p.logicControl.NormalDial(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text(), true)
+		_, err := p.logicControl.NormalDial(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
 		if p.serializable.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.NormalDial failed: %+v", err)
