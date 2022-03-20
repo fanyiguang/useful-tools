@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"useful-tools/common/config"
 
 	"github.com/astaxie/beego/utils"
 
@@ -27,8 +28,7 @@ type Config struct {
 
 func init() {
 	log = logs.NewLogger()
-	executable, _ := os.Executable()
-	NewLog(filepath.Dir(executable), "debug")
+	NewLog(config.GetLogPath(), "debug")
 }
 
 func NewLog(logPath string, level string) {
@@ -46,8 +46,8 @@ func NewLog(logPath string, level string) {
 		Daily:    true,
 	}
 	jsonConfig, _ := json.Marshal(config)
-	_ = log.SetLogger(logs.AdapterConsole, string(jsonConfig))
-	//_ = log.SetLogger(logs.AdapterFile, string(jsonConfig))
+	//_ = log.SetLogger(logs.AdapterConsole, string(jsonConfig))
+	_ = log.SetLogger(logs.AdapterFile, string(jsonConfig))
 	log.EnableFuncCallDepth(true)
 }
 
