@@ -13,6 +13,6 @@ var (
 		"http://lumtest.com/myip.json",
 		"https://checkip.amazonaws.com",
 		"http://myipip.net/",
-		"https://ipinfo.io",
+		"https://ipinfo.io/json",
 	}
 )
