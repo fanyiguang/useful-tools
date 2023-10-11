@@ -172,14 +172,13 @@ func sendRequest(httpClient *http.Client) (res string, err error) {
 			}
 			req.Header.Set("Connection", "Close")
 			resp, rErr := httpClient.Do(req)
-			if resp != nil {
-				defer resp.Body.Close()
-			}
 			if rErr != nil {
 				wlog.Warm("httpClient.Do failed: %v", rErr)
 				return
 			}
-
+			if resp != nil {
+				defer resp.Body.Close()
+			}
 			if resp.StatusCode != http.StatusOK {
 				wlog.Warm("resp.StatusCode: %v not StatusOK", resp.StatusCode)
 				return

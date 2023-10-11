@@ -3,13 +3,14 @@ package net
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/miekg/dns"
 )
 
 func SendDnsRequest(url, dnsServer string) (ips []string, err error) {
 	var msg *dns.Msg
-	client := dns.Client{}
+	client := dns.Client{Timeout: 10 * time.Second}
 	dnsMsg := dns.Msg{}
 	dnsMsg.SetQuestion(fmt.Sprintf("%s.", url), dns.TypeA)
 	if strings.Contains(dnsServer, ":") {
