@@ -5,29 +5,28 @@ import (
 	"sync"
 )
 
-type Serializable struct {
+type Persistence struct {
 	sync.Mutex
-	concurrentParserParams string
+	latestParams string
 }
 
-func NewSerializable() *Serializable {
-	return &Serializable{}
+func NewPersistence() *Persistence {
+	return &Persistence{}
 }
 
-func (s *Serializable) Set(args ...string) string {
+func (s *Persistence) SetLatestParams(args ...string) string {
 	s.Lock()
 	defer s.Unlock()
-	joinStr := strings.Join(args, ",")
-	s.concurrentParserParams = joinStr
-	return joinStr
+	s.latestParams = strings.Join(args, ",")
+	return s.latestParams
 }
 
-func (s *Serializable) Get() string {
+func (s *Persistence) GetLatestParams() string {
 	s.Lock()
 	defer s.Unlock()
-	return s.concurrentParserParams
+	return s.latestParams
 }
 
-func (s *Serializable) Equal(str string) bool {
-	return s.concurrentParserParams == str
+func (s *Persistence) Equal(str string) bool {
+	return s.latestParams == str
 }

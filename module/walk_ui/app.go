@@ -332,11 +332,11 @@ func New() *walk.MainWindow {
 		Size:    Size{1000, 550},
 		MenuItems: []MenuItem{
 			Menu{
-				Text: "视图",
+				Text: "模式",
 				Items: []MenuItem{
 					Action{
 						AssignTo: &common.ConvenientModeMenu,
-						Text:     "解析模式",
+						Text:     "专业模式",
 						//Checked: Bind("openHiddenCB.Visible"),
 						Checked: false,
 						OnTriggered: func() {

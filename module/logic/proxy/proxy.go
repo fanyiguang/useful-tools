@@ -11,8 +11,15 @@ import (
 
 type Proxy struct {
 	base.Base
-	paramsNumber     int
+	host             string
+	port             string
+	username         string
+	password         string
+	typ              string
+	urls             string
+	viewContent      string
 	proxyInfoRegRule string
+	paramsNumber     int
 }
 
 func New() *Proxy {
@@ -22,8 +29,64 @@ func New() *Proxy {
 	}
 }
 
-func (p *Proxy) NormalCheckProxy(ip, port, username, password, proxyType string) (content string, err error) {
-	return proxy.SendHttpRequestByProxy(str.TrimStringSpace(proxyType, username, password, ip, port)...)
+func (p *Proxy) ViewContent() string {
+	return p.viewContent
+}
+
+func (p *Proxy) SetViewContent(viewContent string) {
+	p.viewContent = viewContent
+}
+
+func (p *Proxy) SetHost(host string) {
+	p.host = host
+}
+
+func (p *Proxy) SetPort(port string) {
+	p.port = port
+}
+
+func (p *Proxy) SetUsername(username string) {
+	p.username = username
+}
+
+func (p *Proxy) SetPassword(password string) {
+	p.password = password
+}
+
+func (p *Proxy) SetTyp(typ string) {
+	p.typ = typ
+}
+
+func (p *Proxy) SetUrls(urls string) {
+	p.urls = urls
+}
+
+func (p *Proxy) Host() string {
+	return p.host
+}
+
+func (p *Proxy) Port() string {
+	return p.port
+}
+
+func (p *Proxy) Username() string {
+	return p.username
+}
+
+func (p *Proxy) Password() string {
+	return p.password
+}
+
+func (p *Proxy) Typ() string {
+	return p.typ
+}
+
+func (p *Proxy) Urls() string {
+	return p.urls
+}
+
+func (p *Proxy) NormalCheckProxy(ip, port, username, password, proxyType, proxyReqUrls string) (content string, err error) {
+	return proxy.SendHttpRequestByProxy(str.TrimStringSpace(proxyType, username, password, ip, port, proxyReqUrls)...)
 }
 
 func (p *Proxy) ConvenientCheckProxy(convenientModeContent string) (content string, err error) {

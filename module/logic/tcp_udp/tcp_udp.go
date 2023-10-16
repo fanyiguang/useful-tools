@@ -15,10 +15,55 @@ import (
 
 type TcpUdp struct {
 	base.Base
+	network     string
+	iFace       string
+	host        string
+	port        string
+	viewContent string
 }
 
 func New() *TcpUdp {
 	return &TcpUdp{}
+}
+
+func (t *TcpUdp) ViewContent() string {
+	return t.viewContent
+}
+
+func (t *TcpUdp) SetViewContent(viewContent string) {
+	t.viewContent = viewContent
+}
+
+func (t *TcpUdp) Network() string {
+	return t.network
+}
+
+func (t *TcpUdp) SetNetwork(network string) {
+	t.network = network
+}
+
+func (t *TcpUdp) IFace() string {
+	return t.iFace
+}
+
+func (t *TcpUdp) SetIFace(iFace string) {
+	t.iFace = iFace
+}
+
+func (t *TcpUdp) Host() string {
+	return t.host
+}
+
+func (t *TcpUdp) SetHost(host string) {
+	t.host = host
+}
+
+func (t *TcpUdp) Port() string {
+	return t.port
+}
+
+func (t *TcpUdp) SetPort(port string) {
+	t.port = port
 }
 
 func (t *TcpUdp) NormalDial(network, iFace, targetIp, targetPort string) (isSuccess bool, err error) {

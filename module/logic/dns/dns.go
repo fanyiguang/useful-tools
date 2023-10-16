@@ -11,10 +11,37 @@ import (
 
 type Dns struct {
 	base.Base
+	server      string
+	domain      string
+	viewContent string
 }
 
 func New() *Dns {
 	return &Dns{}
+}
+
+func (t *Dns) Server() string {
+	return t.server
+}
+
+func (t *Dns) SetServer(server string) {
+	t.server = server
+}
+
+func (t *Dns) Domain() string {
+	return t.domain
+}
+
+func (t *Dns) SetDomain(domain string) {
+	t.domain = domain
+}
+
+func (t *Dns) ViewContent() string {
+	return t.viewContent
+}
+
+func (t *Dns) SetViewContent(viewContent string) {
+	t.viewContent = viewContent
 }
 
 func (t *Dns) NormalDns(dnsServer, domain string) (ips []string, err error) {

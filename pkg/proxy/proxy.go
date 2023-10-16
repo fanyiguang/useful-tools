@@ -24,24 +24,16 @@ import (
 )
 
 func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
-	wlog.Info("proxyInfo: %v", proxyInfo)
-	if len(proxyInfo) != 5 {
-		err = errors.New("proxyInfo params number neq 5")
-		return
+	proxyConfig, err := buildConfig(proxyInfo)
+	if err != nil {
+		return "", err
 	}
 
-	inputConfig := InputParams{
-		Ip:       proxyInfo[3],
-		Port:     proxyInfo[4],
-		Username: proxyInfo[1],
-		Password: proxyInfo[2],
-		Type:     strings.ToLower(proxyInfo[0]),
-	}
-	switch inputConfig.Type {
+	switch proxyConfig.Type {
 	case SSH:
 		var client *ssh.Client
-		sshConfig := getSshConfig(inputConfig)
-		client, err = ssh.Dial("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), sshConfig)
+		sshConfig := getSshConfig(proxyConfig)
+		client, err = ssh.Dial("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), sshConfig)
 		if err != nil {
 			err = errors.Wrap(err, "ssh.Dial")
 			return
@@ -54,15 +46,15 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 			},
 		}
 		httpClient := &http.Client{Transport: httpTransport}
-		res, err = sendRequest(httpClient)
+		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
 
 	case SSL:
 		var dialer netProxy.Dialer
 		ssl := mySsl.DialSsl{}
-		if inputConfig.Username == "" || inputConfig.Password == "" {
-			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), nil, ssl)
+		if proxyConfig.Username == "" || proxyConfig.Password == "" {
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), nil, ssl)
 		} else {
-			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), &netProxy.Auth{User: inputConfig.Username, Password: inputConfig.Password}, ssl)
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), &netProxy.Auth{User: proxyConfig.Username, Password: proxyConfig.Password}, ssl)
 		}
 
 		if err != nil {
@@ -76,14 +68,14 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 			},
 		}
 		httpClient := &http.Client{Transport: httpTransport, Timeout: 30 * time.Second}
-		res, err = sendRequest(httpClient)
+		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
 
 	case SOCKS5:
 		var dialer netProxy.Dialer
-		if inputConfig.Username == "" || inputConfig.Password == "" {
-			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), nil, netProxy.Direct)
+		if proxyConfig.Username == "" || proxyConfig.Password == "" {
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), nil, netProxy.Direct)
 		} else {
-			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(inputConfig.Ip, inputConfig.Port), &netProxy.Auth{User: inputConfig.Username, Password: inputConfig.Password}, netProxy.Direct)
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), &netProxy.Auth{User: proxyConfig.Username, Password: proxyConfig.Password}, netProxy.Direct)
 		}
 
 		if err != nil {
@@ -97,11 +89,11 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 			},
 		}
 		httpClient := &http.Client{Transport: httpTransport, Timeout: 30 * time.Second}
-		res, err = sendRequest(httpClient)
+		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
 
 	case HTTPS:
 		var proxy *url.URL
-		proxyURL := fmt.Sprintf("http://%s:%s@%s:%s", inputConfig.Username, inputConfig.Password, inputConfig.Ip, inputConfig.Port)
+		proxyURL := fmt.Sprintf("http://%s:%s@%s:%s", proxyConfig.Username, proxyConfig.Password, proxyConfig.Ip, proxyConfig.Port)
 		proxy, err = url.Parse(proxyURL)
 		if err != nil {
 			err = errors.Wrap(err, "url.Parse(proxyURL)-1")
@@ -122,11 +114,11 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 			},
 		}
 		httpClient := &http.Client{Transport: httpTransport, Timeout: 30 * time.Second}
-		res, err = sendRequest(httpClient)
+		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
 
 	case HTTP:
 		var proxy *url.URL
-		proxyURL := fmt.Sprintf("http://%s:%s@%s:%s", inputConfig.Username, inputConfig.Password, inputConfig.Ip, inputConfig.Port)
+		proxyURL := fmt.Sprintf("http://%s:%s@%s:%s", proxyConfig.Username, proxyConfig.Password, proxyConfig.Ip, proxyConfig.Port)
 		proxy, err = url.Parse(proxyURL)
 		if err != nil {
 			err = errors.Wrap(err, "url.Parse(proxyURL)-2")
@@ -137,14 +129,32 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 			Proxy: http.ProxyURL(proxy),
 		}
 		httpClient := &http.Client{Transport: httpTransport, Timeout: 30 * time.Second}
-		res, err = sendRequest(httpClient)
+		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
 
 	default:
 		err = errors.New("this proxy type non-existent")
 	}
 
-	err = errors.WithMessagef(err, "proxy info: %v", inputConfig)
+	err = errors.WithMessagef(err, "proxy info: %v", proxyConfig)
 	return
+}
+
+func buildConfig(proxyInfo []string) (InputParams, error) {
+	wlog.Info("proxyInfo: %v", proxyInfo)
+	if len(proxyInfo) != 6 {
+		return InputParams{}, errors.New("proxyInfo params number neq 5")
+	}
+	if proxyInfo[5] == "" {
+		proxyInfo[5] = CheckIpUrls
+	}
+	return InputParams{
+		Ip:       proxyInfo[3],
+		Port:     proxyInfo[4],
+		Username: proxyInfo[1],
+		Password: proxyInfo[2],
+		Type:     strings.ToLower(proxyInfo[0]),
+		ReqUrls:  strings.Split(proxyInfo[5], ";"),
+	}, nil
 }
 
 /*获取ssh的配置*/
@@ -160,7 +170,7 @@ func getSshConfig(conf InputParams) (sshConfig *ssh.ClientConfig) {
 	return
 }
 
-func sendRequest(httpClient *http.Client) (res string, err error) {
+func sendRequest(httpClient *http.Client, CheckIpUrls []string) (res string, err error) {
 	resCh := make(chan string)
 	for _, _url := range CheckIpUrls {
 		go func(url string) {
