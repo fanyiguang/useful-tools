@@ -2,18 +2,14 @@ package walkUI
 
 import (
 	"bytes"
-	"useful-tools/helper/Go"
-	"useful-tools/helper/proc"
+	"github.com/lxn/walk"
+	. "github.com/lxn/walk/declarative"
 	"useful-tools/module/logic/app"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/dns"
 	"useful-tools/module/walk_ui/proxy"
 	"useful-tools/module/walk_ui/systray"
 	"useful-tools/module/walk_ui/tcp_udp"
-	"useful-tools/pkg/wlog"
-
-	"github.com/lxn/walk"
-	. "github.com/lxn/walk/declarative"
 )
 
 type PageFactoryFunc func(parent walk.Container, IsConvenientMode bool) (common.Page, error)
@@ -64,6 +60,10 @@ type MultiPageMainWindowConfig struct {
 	PageCfgs             []PageConfig
 }
 
+func (mpmw *MultiPageMainWindow) CurrentAction() *walk.Action {
+	return mpmw.currentAction
+}
+
 func (mpmw *MultiPageMainWindow) CurrentPage() common.Page {
 	return mpmw.currentPage
 }
@@ -95,13 +95,13 @@ func (mpmw *MultiPageMainWindow) newPageAction(title, image string, newPage Page
 	mpmw.action2NewPage[action] = newPage
 
 	action.Triggered().Attach(func() {
-		mpmw.setCurrentAction(action)
+		mpmw.SetCurrentAction(action)
 	})
 
 	return action, nil
 }
 
-func (mpmw *MultiPageMainWindow) setCurrentAction(action *walk.Action) error {
+func (mpmw *MultiPageMainWindow) SetCurrentAction(action *walk.Action) error {
 	defer func() {
 		if !mpmw.pageCom.IsDisposed() {
 			mpmw.pageCom.RestoreState()
@@ -119,7 +119,7 @@ func (mpmw *MultiPageMainWindow) setCurrentAction(action *walk.Action) error {
 
 	newPage := mpmw.action2NewPage[action]
 
-	page, err := newPage(mpmw.pageCom, common.ConvenientModeMenu.Checked())
+	page, err := newPage(mpmw.pageCom, ConvenientModeMenu.Checked())
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (mpmw *MultiPageMainWindow) updateNavigationToolBar() error {
 		if !actions.Contains(mpmw.currentAction) {
 			for _, action := range mpmw.pageActions {
 				if action != mpmw.currentAction {
-					if err := mpmw.setCurrentAction(action); err != nil {
+					if err := mpmw.SetCurrentAction(action); err != nil {
 						return err
 					}
 
@@ -227,12 +227,6 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		return nil, err
 	}
 
-	state := mpmw.logicControl.GetViewModeState()
-	wlog.Debug("mpmw.logicControl.GetViewModeState(): %v", state)
-	if state == 1 {
-		common.ConvenientModeMenu.SetChecked(true)
-	}
-
 	var handleClosing int
 	handleClosing = mpmw.MainWindow.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
 		mpmw.MainWindow.Closing().Detach(handleClosing)
@@ -259,7 +253,7 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 	}
 
 	if len(mpmw.pageActions) > 0 {
-		if err := mpmw.setCurrentAction(mpmw.pageActions[0]); err != nil {
+		if err := mpmw.SetCurrentAction(mpmw.pageActions[0]); err != nil {
 			return nil, err
 		}
 	}
@@ -326,55 +320,11 @@ func (mw *AppMainWindow) openAction_Triggered() {
 func New() *walk.MainWindow {
 	mw := new(AppMainWindow)
 	cfg := &MultiPageMainWindowConfig{
-		Name:    "mainWindow",
-		MinSize: Size{1000, 550},
-		MaxSize: Size{1000, 550},
-		Size:    Size{1000, 550},
-		MenuItems: []MenuItem{
-			Menu{
-				Text: "模式",
-				Items: []MenuItem{
-					Action{
-						AssignTo: &common.ConvenientModeMenu,
-						Text:     "专业模式",
-						//Checked: Bind("openHiddenCB.Visible"),
-						Checked: false,
-						OnTriggered: func() {
-							switch common.ConvenientModeMenu.Checked() {
-							case false:
-								_ = common.ConvenientModeMenu.SetChecked(true)
-								mw.logicControl.SetViewModeState(1)
-							case true:
-								_ = common.ConvenientModeMenu.SetChecked(false)
-								mw.logicControl.SetViewModeState(0)
-							}
-							_ = mw.setCurrentAction(mw.currentAction)
-						},
-					},
-				},
-			},
-			Menu{
-				Text: "帮助",
-				Items: []MenuItem{
-					Action{
-						Text: "反馈",
-						OnTriggered: func() {
-							Go.Go(func() {
-								_ = proc.RunProcByWin32Api(`https://github.com/fanyiguang/useful-tools/issues`, true)
-							})
-						},
-					},
-					Action{
-						Text: "帮助",
-						OnTriggered: func() {
-							Go.Go(func() {
-								_ = proc.RunProcByWin32Api(`https://github.com/fanyiguang/useful-tools`, true)
-							})
-						},
-					},
-				},
-			},
-		},
+		Name:      "mainWindow",
+		MinSize:   Size{1000, 550},
+		MaxSize:   Size{1000, 550},
+		Size:      Size{1000, 550},
+		MenuItems: MenuItems(mw),
 		OnCurrentPageChanged: func() {
 			mw.updateTitle(mw.CurrentPageTitle())
 		},
@@ -402,5 +352,6 @@ func New() *walk.MainWindow {
 
 	mw.MultiPageMainWindow = mpmw
 	mw.updateTitle(mw.CurrentPageTitle())
+	initMenuItems()
 	return mw.systrayMainWindow
 }

@@ -20,3 +20,10 @@ func proxyType() []*common.CompanyItem {
 		{Key: 5, Name: "HTTPS"},
 	}
 }
+
+func getRequestInfo(_default, new string) string {
+	if new == "" {
+		return _default
+	}
+	return new
+}

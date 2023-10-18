@@ -5,14 +5,12 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
-	"useful-tools/common/config"
 	mySsl "useful-tools/pkg/ssl"
 	"useful-tools/pkg/wlog"
 
@@ -23,17 +21,14 @@ import (
 	netProxy "golang.org/x/net/proxy"
 )
 
-func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
-	proxyConfig, err := buildConfig(proxyInfo)
-	if err != nil {
-		return "", err
-	}
-
-	switch proxyConfig.Type {
+func SendHttpRequestByProxy(reqInfo RequestInfo) (res string, err error) {
+	proxyConfig := reqInfo.Proxy
+	request := reqInfo.Request
+	switch strings.ToLower(reqInfo.Proxy.Type) {
 	case SSH:
 		var client *ssh.Client
-		sshConfig := getSshConfig(proxyConfig)
-		client, err = ssh.Dial("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), sshConfig)
+		sshConfig := getSshConfig(proxyConfig.Username, proxyConfig.Password, reqInfo.Timeout)
+		client, err = ssh.Dial("tcp", net.JoinHostPort(proxyConfig.Host, proxyConfig.Port), sshConfig)
 		if err != nil {
 			err = errors.Wrap(err, "ssh.Dial")
 			return
@@ -46,15 +41,15 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 			},
 		}
 		httpClient := &http.Client{Transport: httpTransport}
-		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
+		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)
 
 	case SSL:
 		var dialer netProxy.Dialer
 		ssl := mySsl.DialSsl{}
 		if proxyConfig.Username == "" || proxyConfig.Password == "" {
-			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), nil, ssl)
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Host, proxyConfig.Port), nil, ssl)
 		} else {
-			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), &netProxy.Auth{User: proxyConfig.Username, Password: proxyConfig.Password}, ssl)
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Host, proxyConfig.Port), &netProxy.Auth{User: proxyConfig.Username, Password: proxyConfig.Password}, ssl)
 		}
 
 		if err != nil {
@@ -67,15 +62,15 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 				return dialer.Dial(network, addr)
 			},
 		}
-		httpClient := &http.Client{Transport: httpTransport, Timeout: 30 * time.Second}
-		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
+		httpClient := &http.Client{Transport: httpTransport, Timeout: time.Duration(reqInfo.Timeout) * time.Second}
+		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)
 
 	case SOCKS5:
 		var dialer netProxy.Dialer
 		if proxyConfig.Username == "" || proxyConfig.Password == "" {
-			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), nil, netProxy.Direct)
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Host, proxyConfig.Port), nil, netProxy.Direct)
 		} else {
-			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Ip, proxyConfig.Port), &netProxy.Auth{User: proxyConfig.Username, Password: proxyConfig.Password}, netProxy.Direct)
+			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Host, proxyConfig.Port), &netProxy.Auth{User: proxyConfig.Username, Password: proxyConfig.Password}, netProxy.Direct)
 		}
 
 		if err != nil {
@@ -88,12 +83,12 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 				return dialer.Dial(network, addr)
 			},
 		}
-		httpClient := &http.Client{Transport: httpTransport, Timeout: 30 * time.Second}
-		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
+		httpClient := &http.Client{Transport: httpTransport, Timeout: time.Duration(reqInfo.Timeout) * time.Second}
+		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)
 
 	case HTTPS:
 		var proxy *url.URL
-		proxyURL := fmt.Sprintf("http://%s:%s@%s:%s", proxyConfig.Username, proxyConfig.Password, proxyConfig.Ip, proxyConfig.Port)
+		proxyURL := fmt.Sprintf("http://%s:%s@%s:%s", proxyConfig.Username, proxyConfig.Password, proxyConfig.Host, proxyConfig.Port)
 		proxy, err = url.Parse(proxyURL)
 		if err != nil {
 			err = errors.Wrap(err, "url.Parse(proxyURL)-1")
@@ -113,12 +108,12 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 				})
 			},
 		}
-		httpClient := &http.Client{Transport: httpTransport, Timeout: 30 * time.Second}
-		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
+		httpClient := &http.Client{Transport: httpTransport, Timeout: time.Duration(reqInfo.Timeout) * time.Second}
+		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)
 
 	case HTTP:
 		var proxy *url.URL
-		proxyURL := fmt.Sprintf("http://%s:%s@%s:%s", proxyConfig.Username, proxyConfig.Password, proxyConfig.Ip, proxyConfig.Port)
+		proxyURL := fmt.Sprintf("http://%s:%s@%s:%s", proxyConfig.Username, proxyConfig.Password, proxyConfig.Host, proxyConfig.Port)
 		proxy, err = url.Parse(proxyURL)
 		if err != nil {
 			err = errors.Wrap(err, "url.Parse(proxyURL)-2")
@@ -128,8 +123,8 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 		httpTransport := &http.Transport{
 			Proxy: http.ProxyURL(proxy),
 		}
-		httpClient := &http.Client{Transport: httpTransport, Timeout: 30 * time.Second}
-		res, err = sendRequest(httpClient, proxyConfig.ReqUrls)
+		httpClient := &http.Client{Transport: httpTransport, Timeout: time.Duration(reqInfo.Timeout) * time.Second}
+		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)
 
 	default:
 		err = errors.New("this proxy type non-existent")
@@ -139,48 +134,35 @@ func SendHttpRequestByProxy(proxyInfo ...string) (res string, err error) {
 	return
 }
 
-func buildConfig(proxyInfo []string) (InputParams, error) {
-	wlog.Info("proxyInfo: %v", proxyInfo)
-	if len(proxyInfo) != 6 {
-		return InputParams{}, errors.New("proxyInfo params number neq 5")
-	}
-	if proxyInfo[5] == "" {
-		proxyInfo[5] = CheckIpUrls
-	}
-	return InputParams{
-		Ip:       proxyInfo[3],
-		Port:     proxyInfo[4],
-		Username: proxyInfo[1],
-		Password: proxyInfo[2],
-		Type:     strings.ToLower(proxyInfo[0]),
-		ReqUrls:  strings.Split(proxyInfo[5], ";"),
-	}, nil
-}
-
 /*获取ssh的配置*/
-func getSshConfig(conf InputParams) (sshConfig *ssh.ClientConfig) {
+func getSshConfig(username, password string, timeout int) (sshConfig *ssh.ClientConfig) {
 	sshConfig = &ssh.ClientConfig{
-		User:            conf.Username,
+		User:            username,
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout:         time.Second * time.Duration(30),
+		Timeout:         time.Second * time.Duration(timeout),
 	}
 
 	/*选择登录认证类型*/
-	sshConfig.Auth = []ssh.AuthMethod{ssh.Password(conf.Password)}
+	sshConfig.Auth = []ssh.AuthMethod{ssh.Password(password)}
 	return
 }
 
-func sendRequest(httpClient *http.Client, CheckIpUrls []string) (res string, err error) {
+func sendRequest(httpClient *http.Client, CheckIpUrls []string, method string, header map[string][]string, body string, timeout int, hiddenBody bool) (res string, err error) {
 	resCh := make(chan string)
 	for _, _url := range CheckIpUrls {
 		go func(url string) {
 			var req *http.Request
-			req, err := http.NewRequest("GET", url, nil)
+			req, err := http.NewRequest(method, url, strings.NewReader(body))
 			if err != nil {
 				wlog.Warm("http.NewRequest failed: %v", err)
 				return
 			}
-			req.Header.Set("Connection", "Close")
+			req.Header = header
+			_, ok := header["Connection"]
+			_, okk := header["connection"]
+			if !ok && !okk {
+				req.Header.Set("Connection", "Close")
+			}
 			resp, rErr := httpClient.Do(req)
 			if rErr != nil {
 				wlog.Warm("httpClient.Do failed: %v", rErr)
@@ -194,22 +176,21 @@ func sendRequest(httpClient *http.Client, CheckIpUrls []string) (res string, err
 				return
 			}
 
-			body, _ := ioutil.ReadAll(resp.Body)
-			compile := regexp.MustCompile(config.GetRegIpRule())
-			strBody := string(body)
-			Ip := compile.FindString(strings.TrimSpace(strBody))
-			if Ip != "" {
-				select {
-				case <-time.After(2 * time.Second):
-				case resCh <- strBody:
-				}
+			response, err := httputil.DumpResponse(resp, !hiddenBody)
+			if err != nil {
+				wlog.Warm("DumpResponse error: %v", resp.StatusCode)
+				return
+			}
+			select {
+			case <-time.After(2 * time.Second):
+			case resCh <- string(response):
 			}
 		}(_url)
 	}
 
 	select {
 	case res = <-resCh:
-	case <-time.After(15 * time.Second):
+	case <-time.After(time.Duration(timeout) * time.Second):
 		err = errors.Wrap(errors.New("http request timeout"), "")
 	}
 	return

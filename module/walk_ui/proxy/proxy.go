@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"log"
+	"strings"
 	"useful-tools/helper/Go"
 	"useful-tools/module/logic/proxy"
 	"useful-tools/module/walk_ui/base"
@@ -41,7 +42,7 @@ type Page struct {
 func (p *Page) normalCheckProxy() {
 	encodeParams := p.persistence.SetLatestParams(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text(), p.proxyReqURLs.Text())
 	Go.Go(func() {
-		checkProxy, err := p.logicControl.NormalCheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text(), p.proxyReqURLs.Text())
+		checkProxy, err := p.logicControl.NormalCheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text(), p.proxyReqURLs.Text(), base.MenuItemLogic.HiddenBody())
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.NormalCheckProxy failed: %+v", err)
@@ -58,13 +59,13 @@ func (p *Page) normalCheckProxy() {
 func (p *Page) convenientCheckProxy() {
 	encodeParams := p.persistence.SetLatestParams(p.convenientModeContent.Text())
 	Go.Go(func() {
-		checkProxy, err := p.logicControl.ConvenientCheckProxy(p.convenientModeContent.Text())
+		checkProxy, err := p.logicControl.ConvenientCheckProxy(p.convenientModeContent.Text(), base.MenuItemLogic.HiddenBody())
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.ConvenientCheckProxy failed: %+v", err)
 				p.PrintContent(err.Error())
 			} else {
-				p.PrintContent(checkProxy)
+				p.PrintContent(strings.Replace(checkProxy, "\n", "\r\n", -1))
 			}
 		} else {
 			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.persistence.GetLatestParams())
@@ -317,7 +318,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 							},
 						},
 					},
-					// 解析模式
+					// 专业模式
 					Composite{
 						Name:          "convenient_mode",
 						Visible:       convenientModeState(IsConvenientMode),
@@ -327,8 +328,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						//},
 						//MinSize: Size{Width: 600},
 						Layout: Grid{
-							Alignment: AlignHVDefault,
-							Rows:      1,
+							Rows: 1,
 							//Columns: 1,
 							//MarginsZero: true,
 						},
@@ -337,44 +337,64 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 								Title:  "Parameters",
 								Layout: VBox{},
 								Children: []Widget{
-									TextEdit{
-										Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
-										AssignTo: &p.convenientModeContent,
-										OnKeyPress: func(key walk.Key) {
-											if key == walk.KeyReturn {
-												_ = p.subButton.Checked()
-											}
-										},
-									},
 									Composite{
-										StretchFactor: 1,
-										//Background: SolidColorBrush{ // 增加背景颜色
-										//	Color: walk.RGB(54, 29, 9),
-										//},
-										//MinSize: Size{Width: 600},
 										Layout: Grid{
-											Columns:     2,
-											MarginsZero: true,
-											SpacingZero: true,
+											Alignment: AlignHVDefault,
+											Rows:      2,
 										},
 										Children: []Widget{
-											PushButton{
-												AssignTo: &p.subButton,
-												Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
-												MinSize:  Size{Height: 36},
-												MaxSize:  Size{Height: 36},
-												Text:     "检测",
-												OnClicked: func() {
-													p.convenientCheckProxy()
+											TextEdit{
+												Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
+												AssignTo: &p.convenientModeContent,
+												Text:     getRequestInfo(p.logicControl.ProTemplate(), p.logicControl.RequestInfo()),
+												VScroll:  true,
+												OnTextChanged: func() {
+													p.logicControl.SetRequestInfo(p.convenientModeContent.Text())
+												},
+												OnKeyPress: func(key walk.Key) {
+													if key == walk.KeyReturn {
+														_ = p.subButton.Checked()
+													}
+												},
+												OnMouseDown: func(x, y int, button walk.MouseButton) {
+													if button == walk.LeftButton {
+														if p.logicControl.DoubleClicked() {
+															_ = p.convenientModeContent.SetText(p.logicControl.FormatJson(p.convenientModeContent.Text()))
+														}
+													}
 												},
 											},
-											PushButton{
-												Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
-												MinSize: Size{Height: 36},
-												MaxSize: Size{Height: 36},
-												Text:    "清空",
-												OnClicked: func() {
-													_ = p.convenientModeContent.SetText("")
+											Composite{
+												StretchFactor: 1,
+												//Background: SolidColorBrush{ // 增加背景颜色
+												//	Color: walk.RGB(54, 29, 9),
+												//},
+												//MinSize: Size{Width: 600},
+												Layout: Grid{
+													Columns:     2,
+													MarginsZero: true,
+													SpacingZero: true,
+												},
+												Children: []Widget{
+													PushButton{
+														AssignTo: &p.subButton,
+														Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
+														MinSize:  Size{Height: 36},
+														MaxSize:  Size{Height: 36},
+														Text:     "检测",
+														OnClicked: func() {
+															p.convenientCheckProxy()
+														},
+													},
+													PushButton{
+														Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
+														MinSize: Size{Height: 36},
+														MaxSize: Size{Height: 36},
+														Text:    "清空",
+														OnClicked: func() {
+															_ = p.convenientModeContent.SetText("")
+														},
+													},
 												},
 											},
 										},
@@ -460,7 +480,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 	}).Create(NewBuilder(parent)); err != nil {
 		return nil, err
 	}
-
+	p.proxyPassword.SetPasswordMode(!base.MenuItemLogic.ShowPass())
 	if err := walk.InitWrapperWindow(p); err != nil {
 		return nil, err
 	}

@@ -7,7 +7,16 @@ import (
 )
 
 type Base struct {
-	executing bool
+	executing   bool
+	proTemplate string
+}
+
+func (b *Base) ProTemplate() string {
+	return b.proTemplate
+}
+
+func (b *Base) SetProTemplate(proTemplate string) {
+	b.proTemplate = proTemplate
 }
 
 func (b *Base) IsExecuting() bool {
