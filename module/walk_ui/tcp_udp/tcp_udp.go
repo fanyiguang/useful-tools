@@ -1,6 +1,7 @@
 package tcp_udp
 
 import (
+	"github.com/tidwall/gjson"
 	"log"
 	"useful-tools/helper/Go"
 	"useful-tools/module/logic/tcp_udp"
@@ -36,15 +37,19 @@ type Page struct {
 }
 
 func (p *Page) normalDial() {
-	encodeParams := p.persistence.SetLatestParams(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
+	network := p.network.Text()
+	iFace := p.iFaceList.Text()
+	ip := p.targetIp.Text()
+	port := p.targetPort.Text()
+	encodeParams := p.persistence.SetLatestParams(network, iFace, ip, port)
 	Go.Go(func() {
-		_, err := p.logicControl.NormalDial(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
+		_, err := p.logicControl.NormalDial(network, iFace, ip, port)
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.NormalDial failed: %+v", err)
-				p.AppendContent(logFormat(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text(), err.Error()))
+				p.AppendContent(logFormat(network, iFace, ip, port, err.Error()))
 			} else {
-				p.AppendContent(logFormat(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text(), "OK !"))
+				p.AppendContent(logFormat(network, iFace, ip, port, "OK !"))
 			}
 		} else {
 			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.persistence.GetLatestParams())
@@ -53,15 +58,16 @@ func (p *Page) normalDial() {
 }
 
 func (p *Page) convenientDial() {
-	encodeParams := p.persistence.SetLatestParams(p.network.Text(), p.iFaceList.Text(), p.targetIp.Text(), p.targetPort.Text())
+	content := p.convenientModeContent.Text()
+	encodeParams := p.persistence.SetLatestParams(content)
 	Go.Go(func() {
-		_, err := p.logicControl.ConvenientDial(p.convenientModeContent.Text())
+		_, err := p.logicControl.ConvenientDial(content)
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.ConvenientDial failed: %+v", err)
-				p.PrintContent(err.Error())
+				p.AppendContent(logFormat(gjson.Get(content, "network").String(), gjson.Get(content, "local_ip").String(), gjson.Get(content, "host").String(), gjson.Get(content, "port").String(), err.Error()))
 			} else {
-				p.PrintContent("OK")
+				p.AppendContent(logFormat(gjson.Get(content, "network").String(), gjson.Get(content, "local_ip").String(), gjson.Get(content, "host").String(), gjson.Get(content, "port").String(), "OK !"))
 			}
 		} else {
 			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.persistence.GetLatestParams())
@@ -288,9 +294,21 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 									TextEdit{
 										Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
 										AssignTo: &p.convenientModeContent,
+										Text:     getDialInfo(p.logicControl.ProTemplate(), p.logicControl.RequestInfo()),
+										VScroll:  true,
+										OnTextChanged: func() {
+											p.logicControl.SetRequestInfo(p.convenientModeContent.Text())
+										},
 										OnKeyPress: func(key walk.Key) {
 											if key == walk.KeyReturn {
 												_ = p.subButton.Checked()
+											}
+										},
+										OnMouseDown: func(x, y int, button walk.MouseButton) {
+											if button == walk.LeftButton {
+												if p.logicControl.DoubleClicked() {
+													_ = p.convenientModeContent.SetText(p.logicControl.FormatJson(p.convenientModeContent.Text()))
+												}
 											}
 										},
 									},

@@ -15,3 +15,10 @@ func getServer(server string) string {
 	}
 	return server
 }
+
+func getDnsInfo(_default, new string) string {
+	if new == "" {
+		return _default
+	}
+	return new
+}

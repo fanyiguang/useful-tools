@@ -227,6 +227,8 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 		return nil, err
 	}
 
+	initMenuItems()
+
 	var handleClosing int
 	handleClosing = mpmw.MainWindow.Closing().Attach(func(canceled *bool, reason walk.CloseReason) {
 		mpmw.MainWindow.Closing().Detach(handleClosing)
@@ -352,6 +354,5 @@ func New() *walk.MainWindow {
 
 	mw.MultiPageMainWindow = mpmw
 	mw.updateTitle(mw.CurrentPageTitle())
-	initMenuItems()
 	return mw.systrayMainWindow
 }

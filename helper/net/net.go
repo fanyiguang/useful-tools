@@ -1,6 +1,8 @@
 package net
 
-import "net"
+import (
+	"net"
+)
 
 func DialTcpByIFace(ip, port string, iFaceIP string) (isSuccess bool, err error) {
 	rAddr, err := net.ResolveTCPAddr("tcp", net.JoinHostPort(ip, port))

@@ -8,15 +8,29 @@ import (
 	"github.com/miekg/dns"
 )
 
-func SendDnsRequest(url, dnsServer string) (ips []string, err error) {
+type DnsInfo struct {
+	Server  string `json:"server"`
+	Domain  string `json:"domain"`
+	Qtype   string `json:"qtype"`
+	Timeout int    `json:"timeout"`
+}
+
+func SendDnsRequest(info DnsInfo) (ips []string, err error) {
 	var msg *dns.Msg
-	client := dns.Client{Timeout: 10 * time.Second}
+	client := dns.Client{Timeout: time.Duration(info.Timeout) * time.Second}
 	dnsMsg := dns.Msg{}
-	dnsMsg.SetQuestion(fmt.Sprintf("%s.", url), dns.TypeA)
-	if strings.Contains(dnsServer, ":") {
-		msg, _, err = client.Exchange(&dnsMsg, dnsServer)
+	switch strings.ToLower(info.Qtype) {
+	case "ipv6":
+		dnsMsg.SetQuestion(fmt.Sprintf("%s.", info.Domain), dns.TypeAAAA)
+	case "ipv4":
+		dnsMsg.SetQuestion(fmt.Sprintf("%s.", info.Domain), dns.TypeA)
+	default:
+		dnsMsg.SetQuestion(fmt.Sprintf("%s.", info.Domain), dns.TypeA)
+	}
+	if strings.Contains(info.Server, ":") {
+		msg, _, err = client.Exchange(&dnsMsg, info.Server)
 	} else {
-		msg, _, err = client.Exchange(&dnsMsg, fmt.Sprintf("%s:53", dnsServer))
+		msg, _, err = client.Exchange(&dnsMsg, fmt.Sprintf("%s:53", info.Server))
 	}
 	if err != nil {
 		return

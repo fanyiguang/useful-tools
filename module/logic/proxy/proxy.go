@@ -1,21 +1,16 @@
 package proxy
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
-	"sync"
-	"time"
 	"useful-tools/helper/str"
 	"useful-tools/module/logic/base"
 	"useful-tools/pkg/proxy"
-	"useful-tools/pkg/wlog"
 )
 
 type Proxy struct {
 	base.Base
-	mt          sync.Mutex
 	host        string
 	port        string
 	username    string
@@ -23,23 +18,12 @@ type Proxy struct {
 	typ         string
 	urls        string
 	viewContent string
-	requestInfo string
-
-	leftClickTime time.Time
 }
 
 func New() *Proxy {
 	p := new(Proxy)
 	p.SetProTemplate(proTemplate())
 	return p
-}
-
-func (p *Proxy) RequestInfo() string {
-	return p.requestInfo
-}
-
-func (p *Proxy) SetRequestInfo(requestInfo string) {
-	p.requestInfo = requestInfo
 }
 
 func (p *Proxy) ViewContent() string {
@@ -114,29 +98,6 @@ func (p *Proxy) ConvenientCheckProxy(convenientModeContent string, hiddenBody bo
 	}
 	reqInfo.HiddenBody = hiddenBody
 	return proxy.SendHttpRequestByProxy(reqInfo)
-}
-
-func (p *Proxy) FormatJson(data string) string {
-	var buf bytes.Buffer
-	err := json.Indent(&buf, []byte(data), "", "    ")
-	if err != nil {
-		wlog.Warm("json indent error: %v", err)
-		return data
-	}
-	return strings.ReplaceAll(buf.String(), "\n", "\r\n")
-}
-
-func (p *Proxy) DoubleClicked() (res bool) {
-	p.mt.Lock()
-	defer p.mt.Unlock()
-	now := time.Now()
-	if now.Sub(p.leftClickTime).Milliseconds() <= 800 {
-		res = true
-	} else {
-		res = false
-	}
-	p.leftClickTime = now
-	return
 }
 
 func (p *Proxy) parserConvenientModeContent(content string) (reqInfo proxy.RequestInfo, err error) {

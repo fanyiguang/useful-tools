@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"github.com/tidwall/gjson"
 	"log"
 	"strings"
 	"useful-tools/helper/Go"
@@ -37,15 +38,17 @@ type Page struct {
 }
 
 func (p *Page) normalDns() {
-	encodeParams := p.persistence.SetLatestParams(p.dnsServerAddr.Text(), p.parserDomain.Text())
+	server := p.dnsServerAddr.Text()
+	domain := p.parserDomain.Text()
+	encodeParams := p.persistence.SetLatestParams(server, domain)
 	Go.Go(func() {
-		ips, err := p.logicControl.NormalDns(p.dnsServerAddr.Text(), p.parserDomain.Text())
+		ips, err := p.logicControl.NormalDns(server, domain)
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.NormalDns failed: %+v", err)
-				p.AppendContent(logFormat(p.dnsServerAddr.Text(), p.parserDomain.Text(), err.Error()))
+				p.AppendContent(logFormat(server, domain, err.Error()))
 			} else {
-				p.AppendContent(logFormat(p.dnsServerAddr.Text(), p.parserDomain.Text(), strings.Join(ips, " ")))
+				p.AppendContent(logFormat(server, domain, strings.Join(ips, " ")))
 			}
 		} else {
 			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.persistence.GetLatestParams())
@@ -54,15 +57,16 @@ func (p *Page) normalDns() {
 }
 
 func (p *Page) convenientDns() {
-	encodeParams := p.persistence.SetLatestParams(p.convenientModeContent.Text())
+	content := p.convenientModeContent.Text()
+	encodeParams := p.persistence.SetLatestParams(content)
 	Go.Go(func() {
-		ips, err := p.logicControl.ConvenientDns(p.convenientModeContent.Text())
+		ips, err := p.logicControl.ConvenientDns(content)
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.ConvenientDns failed: %+v", err)
-				p.PrintContent(err.Error())
+				p.AppendContent(logFormat(gjson.Get(content, "server").String(), gjson.Get(content, "domain").String(), err.Error()))
 			} else {
-				p.PrintContent(strings.Join(ips, "\r\n"))
+				p.AppendContent(logFormat(gjson.Get(content, "server").String(), gjson.Get(content, "domain").String(), strings.Join(ips, " ")))
 			}
 		} else {
 			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.persistence.GetLatestParams())
@@ -248,6 +252,18 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 									TextEdit{
 										Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
 										AssignTo: &p.convenientModeContent,
+										Text:     getDnsInfo(p.logicControl.ProTemplate(), p.logicControl.RequestInfo()),
+										VScroll:  true,
+										OnTextChanged: func() {
+											p.logicControl.SetRequestInfo(p.convenientModeContent.Text())
+										},
+										OnMouseDown: func(x, y int, button walk.MouseButton) {
+											if button == walk.LeftButton {
+												if p.logicControl.DoubleClicked() {
+													_ = p.convenientModeContent.SetText(p.logicControl.FormatJson(p.convenientModeContent.Text()))
+												}
+											}
+										},
 									},
 									Composite{
 										StretchFactor: 1,

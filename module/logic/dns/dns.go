@@ -2,6 +2,7 @@ package dns
 
 import (
 	"encoding/json"
+	"fmt"
 	sysNet "net"
 	"strings"
 	"useful-tools/helper/net"
@@ -17,7 +18,9 @@ type Dns struct {
 }
 
 func New() *Dns {
-	return &Dns{}
+	d := new(Dns)
+	d.SetProTemplate(proTemplate())
+	return d
 }
 
 func (t *Dns) Server() string {
@@ -45,59 +48,26 @@ func (t *Dns) SetViewContent(viewContent string) {
 }
 
 func (t *Dns) NormalDns(dnsServer, domain string) (ips []string, err error) {
-	infos := str.TrimStringSpace(dnsServer, domain)
-	if infos[0] == "默认" || infos[0] == "" {
+	dnsInfo := buildDnsInfo(str.TrimStringSpace(dnsServer, domain))
+	if dnsInfo.Server == "默认" || dnsInfo.Server == "" {
 		return sysNet.LookupHost(domain)
 	} else {
-		return net.SendDnsRequest(infos[1], infos[0])
+		return net.SendDnsRequest(dnsInfo)
 	}
 }
 
-func (t *Dns) ConvenientDns(dnsInfo string) (ips []string, err error) {
-	dnsInfos := t.parserConvenientModeContent(strings.TrimSpace(dnsInfo))
-	if len(dnsInfos) < 2 {
-		return sysNet.LookupHost(dnsInfos[0])
-	} else {
-		return net.SendDnsRequest(dnsInfos[1], dnsInfos[0])
+func (t *Dns) ConvenientDns(content string) (ips []string, err error) {
+	dnsInfo, err := t.parserConvenientModeContent(strings.TrimSpace(content))
+	if err != nil {
+		return nil, err
 	}
+	return net.SendDnsRequest(dnsInfo)
 }
 
-func (t *Dns) parserConvenientModeContent(info string) (splitInfo []string) {
-	var tempInfo = make(map[string]string)
-	err := json.Unmarshal([]byte(info), &tempInfo)
-	if err == nil {
-		var dnsServer, domain string
-		for key, val := range tempInfo {
-			if len(val) == 0 {
-				continue
-			}
-			key = strings.ToLower(key)
-			if strings.Contains(key, "domain") || strings.Contains(key, "url") {
-				domain = val
-				continue
-			}
-
-			if strings.Contains(key, "dns") || strings.Contains(key, "server") {
-				dnsServer = val
-				continue
-			}
-
-			if domain != "" {
-				if dnsServer != "" {
-					splitInfo = append(splitInfo, dnsServer, domain)
-				} else {
-					splitInfo = append(splitInfo, domain)
-				}
-				return
-			}
-		}
+func (t *Dns) parserConvenientModeContent(data string) (dnsInfo net.DnsInfo, err error) {
+	err = json.Unmarshal([]byte(data), &dnsInfo)
+	if err != nil {
+		err = fmt.Errorf("JSON解析失败：%v", err.Error())
 	}
-
-	splitInfo = strings.Split(info, ":")
-	if len(splitInfo) >= 2 {
-		return
-	}
-
-	splitInfo = strings.Split(info, " ")
 	return
 }

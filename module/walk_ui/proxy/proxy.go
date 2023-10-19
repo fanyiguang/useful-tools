@@ -40,9 +40,15 @@ type Page struct {
 }
 
 func (p *Page) normalCheckProxy() {
-	encodeParams := p.persistence.SetLatestParams(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text(), p.proxyReqURLs.Text())
+	ip := p.proxyIp.Text()
+	typ := p.proxyType.Text()
+	port := p.proxyPort.Text()
+	urls := p.proxyReqURLs.Text()
+	username := p.proxyUsername.Text()
+	password := p.proxyPassword.Text()
+	encodeParams := p.persistence.SetLatestParams(ip, port, username, password, typ, urls)
 	Go.Go(func() {
-		checkProxy, err := p.logicControl.NormalCheckProxy(p.proxyIp.Text(), p.proxyPort.Text(), p.proxyUsername.Text(), p.proxyPassword.Text(), p.proxyType.Text(), p.proxyReqURLs.Text(), base.MenuItemLogic.HiddenBody())
+		checkProxy, err := p.logicControl.NormalCheckProxy(ip, port, username, password, typ, urls, base.MenuItemLogic.HiddenBody())
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.NormalCheckProxy failed: %+v", err)
@@ -57,9 +63,10 @@ func (p *Page) normalCheckProxy() {
 }
 
 func (p *Page) convenientCheckProxy() {
-	encodeParams := p.persistence.SetLatestParams(p.convenientModeContent.Text())
+	content := p.convenientModeContent.Text()
+	encodeParams := p.persistence.SetLatestParams(content)
 	Go.Go(func() {
-		checkProxy, err := p.logicControl.ConvenientCheckProxy(p.convenientModeContent.Text(), base.MenuItemLogic.HiddenBody())
+		checkProxy, err := p.logicControl.ConvenientCheckProxy(content, base.MenuItemLogic.HiddenBody())
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
 				wlog.Warm("p.logicControl.ConvenientCheckProxy failed: %+v", err)
