@@ -12,6 +12,7 @@ var (
 	ConvenientModeMenu *walk.Action
 	ShowPassMenu       *walk.Action
 	HiddenBodyMenu     *walk.Action
+	SaveAesKeyMenu     *walk.Action
 )
 
 func MenuItems(mw *AppMainWindow) []MenuItem {
@@ -86,6 +87,29 @@ func MenuItems(mw *AppMainWindow) []MenuItem {
 			},
 		},
 		Menu{
+			Text: "功能",
+			Items: []MenuItem{
+				Action{
+					AssignTo: &SaveAesKeyMenu,
+					Text:     "保存AES密钥",
+					//Checked: Bind("openHiddenCB.Visible"),
+					Checked: false,
+					OnTriggered: func() {
+						switch SaveAesKeyMenu.Checked() {
+						case false:
+							_ = SaveAesKeyMenu.SetChecked(true)
+							base.MenuItemLogic.SetSaveAesKey(true)
+							go base.MenuItemLogic.SetSaveAesKeyToFile(1)
+						case true:
+							_ = SaveAesKeyMenu.SetChecked(false)
+							base.MenuItemLogic.SetSaveAesKey(false)
+							go base.MenuItemLogic.SetSaveAesKeyToFile(0)
+						}
+					},
+				},
+			},
+		},
+		Menu{
 			Text: "帮助",
 			Items: []MenuItem{
 				Action{
@@ -118,5 +142,8 @@ func initMenuItems() {
 	}
 	if base.MenuItemLogic.HiddenBody() {
 		_ = HiddenBodyMenu.SetChecked(true)
+	}
+	if base.MenuItemLogic.SaveAesKey() {
+		_ = SaveAesKeyMenu.SetChecked(true)
 	}
 }

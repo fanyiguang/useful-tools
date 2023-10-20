@@ -288,59 +288,68 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title:  "Parameters",
-								Layout: VBox{},
+								Title: "Parameters",
+								Layout: Grid{
+									Rows: 1,
+								},
 								Children: []Widget{
-									TextEdit{
-										Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
-										AssignTo: &p.convenientModeContent,
-										Text:     getDialInfo(p.logicControl.ProTemplate(), p.logicControl.RequestInfo()),
-										VScroll:  true,
-										OnTextChanged: func() {
-											p.logicControl.SetRequestInfo(p.convenientModeContent.Text())
-										},
-										OnKeyPress: func(key walk.Key) {
-											if key == walk.KeyReturn {
-												_ = p.subButton.Checked()
-											}
-										},
-										OnMouseDown: func(x, y int, button walk.MouseButton) {
-											if button == walk.LeftButton {
-												if p.logicControl.DoubleClicked() {
-													_ = p.convenientModeContent.SetText(p.logicControl.FormatJson(p.convenientModeContent.Text()))
-												}
-											}
-										},
-									},
 									Composite{
-										StretchFactor: 1,
-										//Background: SolidColorBrush{ // 增加背景颜色
-										//	Color: walk.RGB(54, 29, 9),
-										//},
-										//MinSize: Size{Width: 600},
 										Layout: Grid{
-											Columns:     2,
-											MarginsZero: true,
-											SpacingZero: true,
+											Rows: 2,
 										},
 										Children: []Widget{
-											PushButton{
-												AssignTo: &p.subButton,
-												Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
-												MinSize:  Size{Height: 36},
-												MaxSize:  Size{Height: 36},
-												Text:     "检测",
-												OnClicked: func() {
-													p.convenientDial()
+											TextEdit{
+												Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
+												AssignTo: &p.convenientModeContent,
+												Text:     getDialInfo(p.logicControl.ProTemplate(), p.logicControl.RequestInfo()),
+												VScroll:  true,
+												OnTextChanged: func() {
+													p.logicControl.SetRequestInfo(p.convenientModeContent.Text())
+												},
+												OnKeyPress: func(key walk.Key) {
+													if key == walk.KeyReturn {
+														_ = p.subButton.Checked()
+													}
+												},
+												OnMouseDown: func(x, y int, button walk.MouseButton) {
+													if button == walk.LeftButton {
+														if p.logicControl.DoubleClicked() {
+															_ = p.convenientModeContent.SetText(p.logicControl.FormatJson(p.convenientModeContent.Text()))
+														}
+													}
 												},
 											},
-											PushButton{
-												Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
-												MinSize: Size{Height: 36},
-												MaxSize: Size{Height: 36},
-												Text:    "清空",
-												OnClicked: func() {
-													_ = p.convenientModeContent.SetText("")
+											Composite{
+												StretchFactor: 1,
+												//Background: SolidColorBrush{ // 增加背景颜色
+												//	Color: walk.RGB(54, 29, 9),
+												//},
+												//MinSize: Size{Width: 600},
+												Layout: Grid{
+													Columns:     2,
+													MarginsZero: true,
+													SpacingZero: true,
+												},
+												Children: []Widget{
+													PushButton{
+														AssignTo: &p.subButton,
+														Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
+														MinSize:  Size{Height: 36},
+														MaxSize:  Size{Height: 36},
+														Text:     "检测",
+														OnClicked: func() {
+															p.convenientDial()
+														},
+													},
+													PushButton{
+														Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
+														MinSize: Size{Height: 36},
+														MaxSize: Size{Height: 36},
+														Text:    "清空",
+														OnClicked: func() {
+															_ = p.convenientModeContent.SetText("")
+														},
+													},
 												},
 											},
 										},
@@ -362,8 +371,10 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 						},
 						Children: []Widget{
 							GroupBox{
-								Title:  "View",
-								Layout: VBox{},
+								Title: "View",
+								Layout: Grid{
+									Rows: 1,
+								},
 								Children: []Widget{
 									Composite{
 										Layout: Grid{

@@ -34,7 +34,6 @@ type Page struct {
 	proxyPassword         *walk.LineEdit
 	proxyReqURLs          *walk.LineEdit
 	subButton             *walk.PushButton
-	viewContent2          *walk.ScrollView
 	viewContent           *walk.TextEdit
 	convenientModeContent *walk.TextEdit
 }

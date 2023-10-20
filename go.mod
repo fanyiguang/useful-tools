@@ -1,6 +1,6 @@
 module useful-tools
 
-go 1.17
+go 1.18
 
 require (
 	github.com/CodyGuo/win v0.0.0-20170113125346-08e6b7208274
@@ -10,6 +10,7 @@ require (
 	github.com/lxn/win v0.0.0-20210218163916-a377121e959e
 	github.com/miekg/dns v1.1.47
 	github.com/pkg/errors v0.9.1
+	github.com/tidwall/gjson v1.17.0
 	golang.org/x/crypto v0.0.0-20220313003712-b769efc7c000
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f
 	golang.org/x/text v0.3.7
@@ -19,7 +20,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
-	github.com/tidwall/gjson v1.17.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
 	golang.org/x/mod v0.4.2 // indirect

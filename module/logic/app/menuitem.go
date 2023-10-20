@@ -13,6 +13,9 @@ type MenuItem struct {
 	proMode    bool
 	showPass   bool
 	hiddenBody bool
+	saveAesKey bool
+	aesKey     string
+	aesIV      string
 }
 
 func NewMenuItem() *MenuItem {
@@ -26,7 +29,36 @@ func NewMenuItem() *MenuItem {
 	if s := m.GetHiddenBodyFromFile(); s == 1 {
 		m.hiddenBody = true
 	}
+	if s := m.GetSaveAesKeyFromFile(); s == 1 {
+		m.saveAesKey = true
+		m.aesKey = m.GetAesKeyFromFile()
+		m.aesIV = m.GetAesIVFromFile()
+	}
 	return m
+}
+
+func (m *MenuItem) AesKey() string {
+	return m.aesKey
+}
+
+func (m *MenuItem) SetAesKey(aesKey string) {
+	m.aesKey = aesKey
+}
+
+func (m *MenuItem) AesIV() string {
+	return m.aesIV
+}
+
+func (m *MenuItem) SetAesIV(aesIV string) {
+	m.aesIV = aesIV
+}
+
+func (m *MenuItem) SaveAesKey() bool {
+	return m.saveAesKey
+}
+
+func (m *MenuItem) SetSaveAesKey(saveAesKey bool) {
+	m.saveAesKey = saveAesKey
 }
 
 func (m *MenuItem) ProMode() bool {
@@ -54,30 +86,71 @@ func (m *MenuItem) SetHiddenBody(hiddenBody bool) {
 }
 
 func (m *MenuItem) SetProModeToFile(state int) {
-	m.SetStateToFile("view_mode", state)
+	m.SetStateToFile("view_mode", strconv.Itoa(state))
 }
 
 func (m *MenuItem) GetProModeFromFile() (state int) {
-	return m.GetStateFromFile("view_mode")
+	s, err := strconv.Atoi(m.GetStateFromFile("view_mode"))
+	if err != nil {
+		return 0
+	}
+	return s
 }
 
 func (m *MenuItem) SetShowPassToFile(state int) {
-	m.SetStateToFile("show_pass", state)
+	m.SetStateToFile("show_pass", strconv.Itoa(state))
 }
 
 func (m *MenuItem) GetShowPassFromFile() (state int) {
-	return m.GetStateFromFile("show_pass")
+	s, err := strconv.Atoi(m.GetStateFromFile("show_pass"))
+	if err != nil {
+		return 0
+	}
+	return s
+
+}
+
+func (m *MenuItem) SetSaveAesKeyToFile(state int) {
+	m.SetStateToFile("save_aes_key", strconv.Itoa(state))
+}
+
+func (m *MenuItem) GetSaveAesKeyFromFile() (state int) {
+	s, err := strconv.Atoi(m.GetStateFromFile("save_aes_key"))
+	if err != nil {
+		return 0
+	}
+	return s
+}
+
+func (m *MenuItem) SetAesKeyToFile(content string) {
+	m.SetStateToFile("aes_key", content)
+}
+
+func (m *MenuItem) GetAesKeyFromFile() (content string) {
+	return m.GetStateFromFile("aes_key")
+}
+
+func (m *MenuItem) SetAesIVToFile(content string) {
+	m.SetStateToFile("aes_iv", content)
+}
+
+func (m *MenuItem) GetAesIVFromFile() (content string) {
+	return m.GetStateFromFile("aes_iv")
 }
 
 func (m *MenuItem) SetHiddenBodyToFile(state int) {
-	m.SetStateToFile("hidden_body", state)
+	m.SetStateToFile("hidden_body", strconv.Itoa(state))
 }
 
 func (m *MenuItem) GetHiddenBodyFromFile() (state int) {
-	return m.GetStateFromFile("hidden_body")
+	s, err := strconv.Atoi(m.GetStateFromFile("hidden_body"))
+	if err != nil {
+		return 0
+	}
+	return s
 }
 
-func (m *MenuItem) SetStateToFile(name string, state int) {
+func (m *MenuItem) SetStateToFile(name string, content string) {
 	file, err := os.OpenFile(filepath.Join(config.GetSettingPath(), name), os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		wlog.Warm("os.Open view_mode failed: %v", err)
@@ -85,14 +158,14 @@ func (m *MenuItem) SetStateToFile(name string, state int) {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString(strconv.Itoa(state))
+	_, err = file.WriteString(content)
 	if err != nil {
 		wlog.Warm("file.WriteString state failed: %v", err)
 		return
 	}
 }
 
-func (m *MenuItem) GetStateFromFile(name string) (state int) {
+func (m *MenuItem) GetStateFromFile(name string) (content string) {
 	file, err := os.OpenFile(filepath.Join(config.GetSettingPath(), name), os.O_CREATE|os.O_RDWR, 0666)
 	if err != nil {
 		wlog.Warm("os.Open view_mode failed: %v", err)
@@ -107,6 +180,5 @@ func (m *MenuItem) GetStateFromFile(name string) (state int) {
 		return
 	}
 
-	state, _ = strconv.Atoi(string(tempState))
-	return
+	return string(tempState)
 }

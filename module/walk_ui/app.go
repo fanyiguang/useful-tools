@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
+	"useful-tools/common/config"
 	"useful-tools/module/logic/app"
+	"useful-tools/module/walk_ui/aes"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/dns"
 	"useful-tools/module/walk_ui/proxy"
@@ -297,14 +299,12 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 
 func (mw *AppMainWindow) updateTitle(prefix string) {
 	var buf bytes.Buffer
-
 	if prefix != "" {
 		buf.WriteString(prefix)
 		buf.WriteString(" - ")
 	}
-
-	buf.WriteString("useful-tools")
-
+	buf.WriteString("useful-tools ")
+	buf.WriteString(config.Version)
 	mw.SetTitle(buf.String())
 }
 
@@ -334,6 +334,7 @@ func New() *walk.MainWindow {
 			{"代理检测", "proxy.png", proxy.NewPage},
 			{"端口检测", "tcp_udp.png", tcp_udp.NewPage},
 			{"DNS检测", "dns.png", dns.NewPage},
+			{"AES转换", "aes.png", aes.NewPage},
 		},
 	}
 

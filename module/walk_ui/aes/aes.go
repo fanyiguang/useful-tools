@@ -1,72 +1,67 @@
-package dns
+package aes
 
 import (
-	"github.com/tidwall/gjson"
+	"github.com/lxn/walk"
+	. "github.com/lxn/walk/declarative"
 	"log"
-	"strings"
 	"useful-tools/helper/Go"
-	"useful-tools/module/logic/dns"
+	"useful-tools/module/logic/aes"
 	"useful-tools/module/walk_ui/base"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/pkg/wlog"
-
-	"github.com/lxn/walk"
-	. "github.com/lxn/walk/declarative"
 )
 
 var (
-	logicControl *dns.Dns
+	logicControl *aes.Aes
 	persistence  *base.Persistence
 )
 
 func init() {
-	logicControl = dns.New()
+	logicControl = aes.New()
 	persistence = base.NewPersistence()
 }
 
 type Page struct {
 	*walk.Composite
 	persistence           *base.Persistence
-	logicControl          *dns.Dns
-	dnsServerAddr         *walk.LineEdit
-	parserDomain          *walk.LineEdit
+	logicControl          *aes.Aes
+	convertType           *walk.ComboBox
+	key                   *walk.LineEdit
+	iv                    *walk.LineEdit
+	inputContent          *walk.TextEdit
 	subButton             *walk.PushButton
 	viewContent           *walk.TextEdit
 	convenientModeContent *walk.TextEdit
-
-	LogView *walk.ScrollView
 }
 
-func (p *Page) normalDns() {
-	server := p.dnsServerAddr.Text()
-	domain := p.parserDomain.Text()
-	encodeParams := p.persistence.SetLatestParams(server, domain)
+func (p *Page) aesAnalysis() {
+	convertTyp := p.convertType.Text()
+	key := p.key.Text()
+	iv := p.iv.Text()
+	inputContent := p.inputContent.Text()
+	if base.MenuItemLogic.SaveAesKey() {
+		Go.Go(func() {
+			base.MenuItemLogic.SetAesKeyToFile(key)
+			base.MenuItemLogic.SetAesIVToFile(iv)
+		})
+	}
+	encodeParams := p.persistence.SetLatestParams(convertTyp, key, iv, inputContent)
 	Go.Go(func() {
-		ips, err := p.logicControl.NormalDns(server, domain)
-		if p.persistence.Equal(encodeParams) {
-			if err != nil {
-				wlog.Warm("p.logicControl.NormalDns failed: %+v", err)
-				p.AppendContent(logFormat(server, domain, err.Error()))
-			} else {
-				p.AppendContent(logFormat(server, domain, strings.Join(ips, " ")))
-			}
-		} else {
-			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.persistence.GetLatestParams())
+		var (
+			data string
+			err  error
+		)
+		switch convertTyp {
+		case "加密":
+			data, err = p.logicControl.Encode(key, iv, inputContent)
+		case "解密":
+			data, err = p.logicControl.Decode(key, iv, inputContent)
 		}
-	})
-}
-
-func (p *Page) convenientDns() {
-	content := p.convenientModeContent.Text()
-	encodeParams := p.persistence.SetLatestParams(content)
-	Go.Go(func() {
-		ips, err := p.logicControl.ConvenientDns(content)
 		if p.persistence.Equal(encodeParams) {
 			if err != nil {
-				wlog.Warm("p.logicControl.ConvenientDns failed: %+v", err)
-				p.AppendContent(logFormat(gjson.Get(content, "server").String(), gjson.Get(content, "domain").String(), err.Error()))
+				p.PrintContent(err.Error())
 			} else {
-				p.AppendContent(logFormat(gjson.Get(content, "server").String(), gjson.Get(content, "domain").String(), strings.Join(ips, " ")))
+				p.PrintContent(data)
 			}
 		} else {
 			wlog.Info("encodeParams(%v) neq p.concurrentParserParams(%v)", encodeParams, p.persistence.GetLatestParams())
@@ -78,17 +73,13 @@ func (p *Page) PrintContent(content string) {
 	_ = p.viewContent.SetText(content)
 }
 
-func (p *Page) AppendContent(content string) {
-	p.viewContent.AppendText(content)
-}
-
 func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) {
 	p := new(Page)
 	p.logicControl = logicControl
 	p.persistence = persistence
 	if err := (Composite{
 		AssignTo: &p.Composite,
-		Name:     "dnsPage",
+		Name:     "proxyPage",
 		Layout: Grid{
 			MarginsZero: true,
 			Rows:        1,
@@ -126,54 +117,103 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 								Layout: Grid{
 									Rows: 1,
 								},
+								//Background: SolidColorBrush{ // 增加背景颜色
+								//	Color: walk.RGB(14, 149, 9),
+								//},
 								Children: []Widget{
 									Composite{
 										Layout: Grid{
-											Rows: 12,
+											Rows: 10,
 										},
+										//Background: SolidColorBrush{ // 增加背景颜色
+										//	Color: walk.RGB(114, 49, 9),
+										//},
 										Children: []Widget{
 											//VSpacer{MinSize: Size{Height: 5}},
-											//VSpacer{Size: 20},
 											Label{
-												Text:      "DNS地址:",
+												Text:      "转换类型:",
+												TextColor: walk.RGB(91, 92, 96),
+												Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
+											},
+											ComboBox{
+												Font:          Font{PointSize: 16},
+												AssignTo:      &p.convertType,
+												Value:         getConvertType(p.logicControl.ConvertType()),
+												Model:         convertType(),
+												DisplayMember: "Name",
+												BindingMember: "Key",
+												OnKeyPress: func(key walk.Key) {
+													if key == walk.KeyTab || key == walk.KeyReturn {
+														_ = p.key.SetFocus()
+													}
+												},
+												OnCurrentIndexChanged: func() {
+													p.logicControl.SetConvertType(p.convertType.Text())
+												},
+											},
+											Label{
+												Text:      "KEY:",
 												TextColor: walk.RGB(91, 92, 96),
 												Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 											},
 											LineEdit{
-												AssignTo:    &p.dnsServerAddr,
+												AssignTo:    &p.key,
 												TextColor:   walk.RGB(40, 40, 42),
 												Background:  TransparentBrush{},
 												Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-												Text:        getServer(p.logicControl.Server()),
-												ToolTipText: "请输入DNS地址",
+												ToolTipText: "以逗号分割AES KEY",
 												MinSize:     Size{Height: 36},
 												MaxSize:     Size{Height: 36},
+												Text:        getText(base.MenuItemLogic.AesKey(), p.logicControl.Key()),
 												OnTextChanged: func() {
-													p.logicControl.SetServer(p.dnsServerAddr.Text())
+													p.logicControl.SetKey(p.key.Text())
 												},
 												OnKeyPress: func(key walk.Key) {
 													if key == walk.KeyTab || key == walk.KeyReturn {
-														_ = p.parserDomain.SetFocus()
+														_ = p.iv.SetFocus()
+														return
+													}
+												},
+											},
+											Label{
+												Text:      "IV:",
+												TextColor: walk.RGB(91, 92, 96),
+												Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
+											},
+											LineEdit{
+												AssignTo:    &p.iv,
+												TextColor:   walk.RGB(40, 40, 42),
+												Background:  TransparentBrush{},
+												Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
+												ToolTipText: "以逗号分割AES IV",
+												MinSize:     Size{Height: 36},
+												MaxSize:     Size{Height: 36},
+												Text:        getText(base.MenuItemLogic.AesIV(), p.logicControl.Iv()),
+												OnTextChanged: func() {
+													p.logicControl.SetIv(p.iv.Text())
+												},
+												OnKeyPress: func(key walk.Key) {
+													if key == walk.KeyTab || key == walk.KeyReturn {
+														_ = p.inputContent.SetFocus()
+														return
 													}
 												},
 											},
 											//VSpacer{Size: 20},
 											Label{
-												Text:      "解析域名:",
+												Text:      "参数:",
 												TextColor: walk.RGB(91, 92, 96),
 												Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 											},
-											LineEdit{
-												AssignTo:    &p.parserDomain,
-												TextColor:   walk.RGB(40, 40, 42),
-												Background:  TransparentBrush{},
-												Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
-												ToolTipText: "请输入解析域名",
-												MinSize:     Size{Height: 36},
-												MaxSize:     Size{Height: 36},
-												Text:        p.logicControl.Domain(),
+											TextEdit{
+												Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
+												AssignTo: &p.inputContent,
+												VScroll:  true,
+												Text:     p.logicControl.InputContent(),
+												MinSize:  Size{Height: 355},
+												MaxSize:  Size{Height: 450},
 												OnTextChanged: func() {
-													p.logicControl.SetDomain(p.parserDomain.Text())
+													p.logicControl.SetInputContent(p.inputContent.Text())
 												},
 												OnKeyPress: func(key walk.Key) {
 													if key == walk.KeyTab || key == walk.KeyReturn {
@@ -181,6 +221,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 													}
 												},
 											},
+											//VSpacer{Size: 20},
 											VSpacer{},
 											Composite{
 												StretchFactor: 1,
@@ -199,14 +240,14 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 														Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
 														MinSize:  Size{Height: 36},
 														MaxSize:  Size{Height: 36},
-														Text:     "解析",
+														Text:     "检测",
 														OnClicked: func() {
-															p.normalDns()
+															p.aesAnalysis()
 														},
 														//OnKeyPress: func(key walk.Key) {
 														//	fmt.Println(key)
 														//	if key == walk.KeyReturn {
-														//		p.normalDns()
+														//		p.normalCheckProxy()
 														//	}
 														//},
 													},
@@ -216,8 +257,9 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 														MaxSize: Size{Height: 36},
 														Text:    "清空",
 														OnClicked: func() {
-															_ = p.dnsServerAddr.SetText("")
-															_ = p.parserDomain.SetText("")
+															_ = p.key.SetText("")
+															_ = p.iv.SetText("")
+															_ = p.inputContent.SetText("")
 														},
 													},
 												},
@@ -227,89 +269,6 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 									},
 								},
 							},
-						},
-					},
-					// 解析模式
-					Composite{
-						Name:          "convenient_mode",
-						Visible:       convenientModeState(IsConvenientMode),
-						StretchFactor: 1,
-						//Background: SolidColorBrush{ // 增加背景颜色
-						//	Color: walk.RGB(14, 249, 9),
-						//},
-						//MinSize: Size{Width: 600},
-						Layout: Grid{
-							Alignment: AlignHVDefault,
-							Rows:      1,
-							//Columns: 1,
-							//MarginsZero: true,
-						},
-						Children: []Widget{
-							GroupBox{
-								Title: "Parameters",
-								Layout: Grid{
-									Rows: 1,
-								},
-								Children: []Widget{
-									Composite{
-										Layout: Grid{
-											Rows: 2,
-										},
-										Children: []Widget{
-											TextEdit{
-												Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
-												AssignTo: &p.convenientModeContent,
-												Text:     getDnsInfo(p.logicControl.ProTemplate(), p.logicControl.RequestInfo()),
-												VScroll:  true,
-												OnTextChanged: func() {
-													p.logicControl.SetRequestInfo(p.convenientModeContent.Text())
-												},
-												OnMouseDown: func(x, y int, button walk.MouseButton) {
-													if button == walk.LeftButton {
-														if p.logicControl.DoubleClicked() {
-															_ = p.convenientModeContent.SetText(p.logicControl.FormatJson(p.convenientModeContent.Text()))
-														}
-													}
-												},
-											},
-											Composite{
-												StretchFactor: 1,
-												//Background: SolidColorBrush{ // 增加背景颜色
-												//	Color: walk.RGB(54, 29, 9),
-												//},
-												//MinSize: Size{Width: 600},
-												Layout: Grid{
-													Columns:     2,
-													MarginsZero: true,
-													SpacingZero: true,
-												},
-												Children: []Widget{
-													PushButton{
-														AssignTo: &p.subButton,
-														Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
-														MinSize:  Size{Height: 36},
-														MaxSize:  Size{Height: 36},
-														Text:     "解析",
-														OnClicked: func() {
-															p.convenientDns()
-														},
-													},
-													PushButton{
-														Font:    Font{Family: "MicrosoftYaHei", PointSize: 14},
-														MinSize: Size{Height: 36},
-														MaxSize: Size{Height: 36},
-														Text:    "清空",
-														OnClicked: func() {
-															_ = p.convenientModeContent.SetText("")
-														},
-													},
-												},
-											},
-										},
-									},
-								},
-							},
-							//VSpacer{},
 						},
 					},
 					// 输出页面
@@ -331,6 +290,9 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 										Layout: Grid{
 											Rows: 2,
 										},
+										//Background: SolidColorBrush{ // 增加背景颜色
+										//	Color: walk.RGB(114, 49, 9),
+										//},
 										Children: []Widget{
 											TextEdit{
 												Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
@@ -340,6 +302,13 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												Text:     p.logicControl.ViewContent(),
 												OnTextChanged: func() {
 													p.logicControl.SetViewContent(p.viewContent.Text())
+												},
+												OnMouseDown: func(x, y int, button walk.MouseButton) {
+													if button == walk.LeftButton {
+														if p.logicControl.DoubleClicked() {
+															_ = p.viewContent.SetText(p.logicControl.FormatJson(p.viewContent.Text()))
+														}
+													}
 												},
 											},
 											Composite{
@@ -388,7 +357,6 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 	}).Create(NewBuilder(parent)); err != nil {
 		return nil, err
 	}
-
 	if err := walk.InitWrapperWindow(p); err != nil {
 		return nil, err
 	}
@@ -396,33 +364,9 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 }
 
 func normalModeState(mode bool) Property {
-	return !mode
+	return true
 }
 
 func convenientModeState(mode bool) Property {
 	return mode
-}
-
-func getNetwork() []*common.CompanyItem {
-	return []*common.CompanyItem{
-		{Key: 1, Name: "TCP"},
-		{Key: 2, Name: "UDP"},
-	}
-}
-
-func getDefaultIFaceList() []*common.CompanyItem {
-	return []*common.CompanyItem{
-		{Key: 1, Name: "随机"},
-	}
-}
-
-func createIFaceList(ips []string) []*common.CompanyItem {
-	list := getDefaultIFaceList()
-	for i, ip := range ips {
-		list = append(list, &common.CompanyItem{
-			Name: ip,
-			Key:  i + 1,
-		})
-	}
-	return list
 }
