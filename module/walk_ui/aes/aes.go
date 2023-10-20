@@ -210,8 +210,8 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												AssignTo: &p.inputContent,
 												VScroll:  true,
 												Text:     p.logicControl.InputContent(),
-												MinSize:  Size{Height: 355},
-												MaxSize:  Size{Height: 450},
+												//MinSize:  Size{Height: 355},
+												//MaxSize: Size{Height: 450},
 												OnTextChanged: func() {
 													p.logicControl.SetInputContent(p.inputContent.Text())
 												},
