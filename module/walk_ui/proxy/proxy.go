@@ -350,10 +350,11 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 										},
 										Children: []Widget{
 											TextEdit{
-												Font:     Font{Family: "MicrosoftYaHei", PointSize: 15},
-												AssignTo: &p.convenientModeContent,
-												Text:     getRequestInfo(p.logicControl.ProTemplate(), p.logicControl.RequestInfo()),
-												VScroll:  true,
+												Font:        Font{Family: "MicrosoftYaHei", PointSize: 15},
+												AssignTo:    &p.convenientModeContent,
+												Text:        getRequestInfo(p.logicControl.ProTemplate(), p.logicControl.RequestInfo()),
+												VScroll:     true,
+												ToolTipText: "双击格式化内容！",
 												OnTextChanged: func() {
 													p.logicControl.SetRequestInfo(p.convenientModeContent.Text())
 												},
