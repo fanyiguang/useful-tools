@@ -24,6 +24,11 @@ import (
 func SendHttpRequestByProxy(reqInfo RequestInfo) (res string, err error) {
 	proxyConfig := reqInfo.Proxy
 	request := reqInfo.Request
+	for i, _url := range reqInfo.Request.Urls {
+		if strings.Index(_url, "http") != 0 {
+			reqInfo.Request.Urls[i] = fmt.Sprintf("http://%v", _url)
+		}
+	}
 	switch strings.ToLower(reqInfo.Proxy.Type) {
 	case SSH:
 		var client *ssh.Client
