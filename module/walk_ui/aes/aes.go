@@ -149,6 +149,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												},
 												OnCurrentIndexChanged: func() {
 													p.logicControl.SetConvertType(p.convertType.Text())
+													_ = p.subButton.SetText(p.convertType.Text())
 												},
 											},
 											Label{
@@ -240,7 +241,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 														Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
 														MinSize:  Size{Height: 36},
 														MaxSize:  Size{Height: 36},
-														Text:     "检测",
+														Text:     "解密",
 														OnClicked: func() {
 															p.aesAnalysis()
 														},
