@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"fmt"
+	"strings"
 )
 
 type Code struct {
@@ -90,7 +91,10 @@ func AesDecodeWithKey(key, iv, msg []byte) (decrypt []byte, err error) {
 		}
 	}()
 	decrypt, err = NewAesCode(key, iv).AesDecrypt(msg)
-	return
+	if err != nil {
+		return nil, err
+	}
+	return []byte(strings.TrimRight(string(decrypt), "\x00")), nil
 }
 
 func AesEncodeWithKey(key, iv, msg []byte) (encode []byte, err error) {
