@@ -151,7 +151,7 @@ func (m *MenuItem) GetHiddenBodyFromFile() (state int) {
 }
 
 func (m *MenuItem) SetStateToFile(name string, content string) {
-	file, err := os.OpenFile(filepath.Join(config.GetSettingPath(), name), os.O_CREATE|os.O_RDWR, 0666)
+	file, err := os.OpenFile(filepath.Join(config.GetSettingPath(), name), os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
 		wlog.Warm("os.Open view_mode failed: %v", err)
 		return

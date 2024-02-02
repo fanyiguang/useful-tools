@@ -258,8 +258,8 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 														MaxSize: Size{Height: 36},
 														Text:    "清空",
 														OnClicked: func() {
-															_ = p.key.SetText("")
-															_ = p.iv.SetText("")
+															//_ = p.key.SetText("")
+															//_ = p.iv.SetText("")
 															_ = p.inputContent.SetText("")
 														},
 													},

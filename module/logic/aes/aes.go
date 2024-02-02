@@ -1,10 +1,9 @@
 package aes
 
 import (
-	"encoding/base64"
 	"strings"
 	"useful-tools/module/logic/base"
-	"useful-tools/pkg/aes"
+	"useful-tools/pkg/crypto"
 )
 
 type Aes struct {
@@ -63,33 +62,31 @@ func (a *Aes) SetViewContent(viewContent string) {
 }
 
 func (a *Aes) Encode(key, iv, content string) (string, error) {
-	_key, err := a.buildSecretKey(key)
+	jng, err := a.buildSecretKey(key)
 	if err != nil {
 		return "", err
 	}
-	_iv, err := a.buildSecretKey(iv)
+	pkq, err := a.buildSecretKey(iv)
 	if err != nil {
 		return "", err
 	}
-
-	aesData, err := aes.AesEncodeWithKey(_key, _iv, []byte(content))
+	aesData, err := crypto.AESEncrypt(jng, pkq, []byte(content))
 	if err != nil {
 		return "", err
 	}
-	return base64.StdEncoding.EncodeToString(aesData), nil
+	return string(aesData), nil
 }
 
 func (a *Aes) Decode(key, iv, content string) (string, error) {
-	_key, err := a.buildSecretKey(key)
+	jng, err := a.buildSecretKey(key)
 	if err != nil {
 		return "", err
 	}
-	_iv, err := a.buildSecretKey(iv)
+	pkq, err := a.buildSecretKey(iv)
 	if err != nil {
 		return "", err
 	}
-	base64decodedData, err := base64.StdEncoding.DecodeString(content)
-	aesData, err := aes.AesDecodeWithKey(_key, _iv, base64decodedData)
+	aesData, err := crypto.AESDecrypt(jng, pkq, []byte(content))
 	if err != nil {
 		return "", err
 	}
@@ -108,12 +105,6 @@ func (a *Aes) buildSecretKey(key string) (new []byte, err error) {
 		}
 		return
 	}
-	for _, k := range key {
-		b, err := strToByte(string(k))
-		if err != nil {
-			return nil, err
-		}
-		new = append(new, b...)
-	}
+	new = []byte(key)
 	return
 }
