@@ -252,7 +252,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												},
 											},
 											Label{
-												Text:      "请求地址:",
+												Text:      "请求地址(选填):",
 												TextColor: walk.RGB(91, 92, 96),
 												Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 											},
@@ -262,9 +262,10 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												Background:  TransparentBrush{},
 												Font:        Font{Family: "MicrosoftYaHei", PointSize: 14},
 												ToolTipText: "代理请求的地址，多个地址请用;隔开！",
-												MinSize:     Size{Height: 36},
-												MaxSize:     Size{Height: 36},
-												Text:        p.logicControl.Urls(),
+												//CueBanner:   "非必填",
+												MinSize: Size{Height: 36},
+												MaxSize: Size{Height: 36},
+												Text:    p.logicControl.Urls(),
 												OnTextChanged: func() {
 													p.logicControl.SetUrls(p.proxyReqURLs.Text())
 												},

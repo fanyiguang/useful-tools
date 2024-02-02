@@ -149,6 +149,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												},
 												OnCurrentIndexChanged: func() {
 													p.logicControl.SetConvertType(p.convertType.Text())
+													_ = p.subButton.SetText(p.convertType.Text())
 												},
 											},
 											Label{
@@ -211,7 +212,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												VScroll:  true,
 												Text:     p.logicControl.InputContent(),
 												//MinSize:  Size{Height: 355},
-												//MaxSize: Size{Height: 450},
+												MaxSize: Size{Height: 450},
 												OnTextChanged: func() {
 													p.logicControl.SetInputContent(p.inputContent.Text())
 												},
@@ -240,7 +241,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 														Font:     Font{Family: "MicrosoftYaHei", PointSize: 14},
 														MinSize:  Size{Height: 36},
 														MaxSize:  Size{Height: 36},
-														Text:     "检测",
+														Text:     "解密",
 														OnClicked: func() {
 															p.aesAnalysis()
 														},
@@ -257,8 +258,8 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 														MaxSize: Size{Height: 36},
 														Text:    "清空",
 														OnClicked: func() {
-															_ = p.key.SetText("")
-															_ = p.iv.SetText("")
+															//_ = p.key.SetText("")
+															//_ = p.iv.SetText("")
 															_ = p.inputContent.SetText("")
 														},
 													},

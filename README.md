@@ -29,3 +29,4 @@
 
 ### AES转换
 ![image](https://github.com/fanyiguang/useful-tools/blob/master/resource/aes-normal.png)
+密钥支持十六进制格式和字符串格式
