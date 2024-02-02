@@ -2,7 +2,7 @@
 **useful-tools** 是方便平常开发，测试和运维的小工具集合。
 
 ## 下载
-[Useful-tools v1.1.0](https://github.com/fanyiguang/useful-tools/releases/download/v1.1.0/useful-tools.zip)
+[Useful-tools](https://github.com/fanyiguang/useful-tools/releases)
 
 ## 功能介绍
 
