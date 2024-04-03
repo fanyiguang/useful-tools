@@ -126,6 +126,18 @@ func AESDecrypt(key, iv []byte, data []byte) ([]byte, error) {
 	return aesDecrypt(buf[:n], key, iv)
 }
 
+func AesPKCS7Decrypt(key []byte, iv []byte, data []byte) ([]byte, error) {
+	if len(data) == 0 {
+		return nil, fmt.Errorf("empty data")
+	}
+	buf := make([]byte, base64.StdEncoding.DecodedLen(len(data)))
+	n, err := base64.StdEncoding.Decode(buf, data)
+	if err != nil {
+		return nil, err
+	}
+	return aesDecryptPkcs7(buf[:n], key, iv)
+}
+
 // AESDecryptPKCS7WithoutBase64 AES解密
 func AESDecryptPKCS7WithoutBase64(key, iv []byte, data []byte) ([]byte, error) {
 	if len(data) == 0 {
