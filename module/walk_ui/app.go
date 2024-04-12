@@ -9,6 +9,7 @@ import (
 	"useful-tools/module/walk_ui/aes"
 	"useful-tools/module/walk_ui/common"
 	"useful-tools/module/walk_ui/dns"
+	"useful-tools/module/walk_ui/draft"
 	"useful-tools/module/walk_ui/proxy"
 	"useful-tools/module/walk_ui/systray"
 	"useful-tools/module/walk_ui/tcp_udp"
@@ -83,7 +84,7 @@ func (mpmw *MultiPageMainWindow) CurrentPageChanged() *walk.Event {
 }
 
 func (mpmw *MultiPageMainWindow) newPageAction(title, image string, newPage PageFactoryFunc) (*walk.Action, error) {
-	img, err := walk.Resources.Bitmap(image)
+	img, err := walk.Resources.Image(image)
 	if err != nil {
 		return nil, err
 	}
@@ -204,6 +205,11 @@ func NewMultiPageMainWindow(cfg *MultiPageMainWindowConfig) (*MultiPageMainWindo
 						Layout: VBox{MarginsZero: true},
 						Children: []Widget{
 							ToolBar{
+								//Background: SolidColorBrush{ // 增加背景颜色
+								//	Color: walk.RGB(54, 29, 9),
+								//},
+								//MinSize:     Size{Width: 80},
+								//MaxSize:     Size{Width: 80},
 								AssignTo:    &mpmw.navTB,
 								Orientation: Vertical,
 								ButtonStyle: ToolBarButtonImageAboveText,
@@ -331,6 +337,7 @@ func New() *walk.MainWindow {
 			mw.updateTitle(mw.CurrentPageTitle())
 		},
 		PageCfgs: []PageConfig{
+			{"草稿搭子", "draft.png", draft.NewPage},
 			{"代理检测", "proxy.png", proxy.NewPage},
 			{"端口检测", "tcp_udp.png", tcp_udp.NewPage},
 			{"DNS检测", "dns.png", dns.NewPage},
