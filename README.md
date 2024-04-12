@@ -12,10 +12,14 @@
 3. **视图 > 隐藏消息体：** 可以隐藏请求响应的body只显示header
 4. **功能 > 隐藏AES密钥：** 会保存上一次AES加解密的密钥
 
+### 草稿搭子
+![image](https://github.com/fanyiguang/useful-tools/blob/master/resource/draft-normal.png)  
+是处理和记录临时文本的不二之选，Ctrl+⬆/Ctrl+⬇ 可以进行翻页，犹如真实草稿本一般。
+
 ### 代理检测
 #### 普通模式
 ![image](https://github.com/fanyiguang/useful-tools/blob/master/resource/proxy-normal.png)  
-支持SOCKS5，SSL，SSH，HTTP，HTTPS五种代理的检测，输入对应的参数点击检测结果就会输出到右侧的文本框中。
+支持SOCKS5，SSL，SSH，HTTP，HTTPS，SHADOWSOCKS 6种代理的检测，输入对应的参数点击检测结果就会输出到右侧的文本框中。
 
 ### 端口检测
 #### 普通模式

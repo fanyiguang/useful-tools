@@ -1,7 +1,7 @@
-VERSION=v1.1.1
+VERSION=v1.2.0
 APPNAME=useful-tools
 
-build-all: build-release build-test
+build: build-release build-test
 
 build-release:
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build \
