@@ -18,15 +18,24 @@ require (
 )
 
 require (
+	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
+	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/sagernet/sing v0.3.0 // indirect
 	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
+	github.com/shirou/gopsutil/v3 v3.24.3 // indirect
+	github.com/shoenig/go-m1cpu v0.1.6 // indirect
+	github.com/spf13/cast v1.6.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tklauser/go-sysconf v0.3.12 // indirect
+	github.com/tklauser/numcpus v0.6.1 // indirect
+	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	golang.org/x/mod v0.8.0 // indirect
-	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/sys v0.18.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect

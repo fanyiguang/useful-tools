@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/user"
 	"path"
+	"path/filepath"
 )
 
 func GetCurrentUserPath() string {
@@ -30,4 +31,20 @@ func GetCurrentPath() string {
 		return ""
 	}
 	return userPath
+}
+
+func Path() (string, error) {
+	// 获取可执行文件的路径
+	executablePath, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+
+	// 将路径转换为绝对路径
+	absolutePath, err := filepath.Abs(executablePath)
+	if err != nil {
+		return "", err
+	}
+
+	return absolutePath, nil
 }

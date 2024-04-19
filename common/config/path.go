@@ -13,6 +13,7 @@ var (
 	tempPath     = ""
 	logPath      = ""
 	settingPath  = ""
+	configPath   = ""
 )
 
 func init() {
@@ -21,7 +22,7 @@ func init() {
 	SetTempPath(filepath.Join(GetProjectsPath(), "temp"))
 	SetLogPath(filepath.Join(GetProjectsPath(), "log"))
 	SetSettingPath(filepath.Join(GetProjectsPath(), "setting"))
-	//fmt.Println(GetTempPath(), GetLogPath(), GetProjectsPath(), GetSettingPath())
+	SetConfigPath(filepath.Join(GetProjectsPath(), "config"))
 	if !utils.FileExists(GetTempPath()) {
 		_ = os.MkdirAll(GetTempPath(), 0666)
 	}
@@ -32,6 +33,10 @@ func init() {
 
 	if !utils.FileExists(GetSettingPath()) {
 		_ = os.MkdirAll(GetSettingPath(), 0666)
+	}
+
+	if !utils.FileExists(GetConfigPath()) {
+		_ = os.MkdirAll(GetConfigPath(), 0666)
 	}
 }
 
@@ -65,4 +70,12 @@ func GetSettingPath() string {
 
 func SetSettingPath(path string) {
 	settingPath = path
+}
+
+func SetConfigPath(path string) {
+	configPath = path
+}
+
+func GetConfigPath() string {
+	return configPath
 }

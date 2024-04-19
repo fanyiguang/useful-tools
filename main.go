@@ -1,12 +1,12 @@
 package main
 
 import (
-	"useful-tools/app"
+	"useful-tools/app/useful"
 	"useful-tools/pkg/wlog"
 )
 
 func main() {
-	err := app.App()
+	err := useful.App()
 	if err != nil {
 		wlog.Error("%+v", err)
 	}

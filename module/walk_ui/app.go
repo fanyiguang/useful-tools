@@ -2,6 +2,7 @@ package walkUI
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/lxn/walk"
 	. "github.com/lxn/walk/declarative"
 	"useful-tools/common/config"
@@ -310,7 +311,7 @@ func (mw *AppMainWindow) updateTitle(prefix string) {
 		buf.WriteString(" - ")
 	}
 	buf.WriteString("useful-tools ")
-	buf.WriteString(config.Version)
+	buf.WriteString(fmt.Sprintf("v%v", config.Version))
 	mw.SetTitle(buf.String())
 }
 
