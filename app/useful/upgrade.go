@@ -1,6 +1,7 @@
 package useful
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/spf13/cast"
 	"io"
@@ -14,23 +15,35 @@ import (
 	"useful-tools/pkg/wlog"
 )
 
+type UpgradeParam struct {
+	PkgDownloadURL string `json:"pkg_download_url"`
+	ProcessName    string `json:"process_name"`
+	ZipPkgName     string `json:"zip_pkg_name"`
+	Version        string `json:"version"`
+}
+
 func upgrade() error {
 	resp, err := http.Get(config.VersionURL)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
-	version, err := io.ReadAll(resp.Body)
+	content, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	wlog.Info("new version: %v, current version: %v", string(version), config.Version)
-	if !isUpgrade(string(version), config.Version) {
+	var upgradeParam UpgradeParam
+	err = json.Unmarshal(content, &upgradeParam)
+	if err != nil {
+		return err
+	}
+	wlog.Info("new version: %v, current version: %v", upgradeParam.Version, config.Version)
+	if !isUpgrade(upgradeParam.Version, config.Version) {
 		return nil
 	}
 
-	filename := filepath.Join(os.TempDir(), fmt.Sprintf("useful-tools_%v.zip", string(version)))
-	downloadUrl := buildDownloadUrl(string(version))
+	filename := filepath.Join(os.TempDir(), fmt.Sprintf("useful-tools_%v.zip", upgradeParam.Version))
+	downloadUrl := buildDownloadUrl(upgradeParam.Version, upgradeParam.PkgDownloadURL, upgradeParam.ZipPkgName)
 	wlog.Info("download url: %v", downloadUrl)
 	err = DownloadPkg(downloadUrl, filename)
 	if err != nil {
@@ -38,10 +51,7 @@ func upgrade() error {
 	}
 	wlog.Info("download pkg success")
 
-	cmd := exec.Command(filepath.Join(config.GetProjectsPath(), "upgrade.exe"), filename)
-	if err != nil {
-		return err
-	}
+	cmd := exec.Command(filepath.Join(config.GetProjectsPath(), "upgrade.exe"), filename, upgradeParam.ProcessName)
 	err = cmd.Run()
 	if err != nil {
 		wlog.Warm("cmd run upgrade error: %v", err)
@@ -49,8 +59,8 @@ func upgrade() error {
 	return nil
 }
 
-func buildDownloadUrl(version string) string {
-	return fmt.Sprintf("%v/v%v/useful-tools.zip", config.PkgDownloadURL, version)
+func buildDownloadUrl(version, pkgDownloadURL, zipPkgName string) string {
+	return fmt.Sprintf("%v/v%v/%v", pkgDownloadURL, version, zipPkgName)
 }
 
 func isUpgrade(newVersion string, oldVersion string) bool {

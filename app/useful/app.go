@@ -8,7 +8,7 @@ import (
 )
 
 func App() (err error) {
-	err = initConfig()
+	err = initLogic()
 	if err != nil {
 		return err
 	}

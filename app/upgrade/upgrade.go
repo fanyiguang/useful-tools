@@ -23,7 +23,7 @@ var (
 	upDir  string
 )
 
-func Upgrade(file string) error {
+func Upgrade(file string, processName string) error {
 	if !utils.FileExists(file) {
 		return fmt.Errorf("%v file not exist", file)
 	}
@@ -71,7 +71,7 @@ func Upgrade(file string) error {
 	}
 	wlog.Info("copy new dir success")
 
-	err = runProc(filepath.Join(runDir, "useful-tools.exe"))
+	err = runProc(filepath.Join(runDir, fmt.Sprintf("%v.exe", processName)))
 	if err != nil {
 		return err
 	}

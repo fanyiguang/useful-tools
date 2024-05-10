@@ -1,6 +1,7 @@
 package useful
 
 import (
+	"os"
 	"time"
 	"useful-tools/pkg/wlog"
 )
@@ -10,7 +11,8 @@ func backGround() {
 }
 
 func upgradeLoop() {
-	ticker := time.NewTicker(10 * time.Minute)
+	os.Rename()
+	ticker := time.NewTicker(1 * time.Minute)
 	for {
 		select {
 		case <-ticker.C:
