@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"useful-tools/common/config"
+	"useful-tools/helper/file"
 	"useful-tools/helper/path"
 	"useful-tools/pkg/wlog"
 )
@@ -21,10 +22,12 @@ func initLogic() error {
 }
 
 func initFile() {
-	err := os.Rename(fmt.Sprintf("./%v", config.ProcessUpgradeName), filepath.Join(config.GetProjectsPath(), config.ProcessUpgradeName))
+	_, err := file.CopyFile(filepath.Join(config.GetProjectsPath(), config.ProcessUpgradeName), fmt.Sprintf("./%v", config.ProcessUpgradeName))
 	if err != nil {
 		wlog.Warm("init file error", err)
+		return
 	}
+	_ = os.Remove(fmt.Sprintf("./%v", config.ProcessUpgradeName))
 }
 
 func initConfig() error {

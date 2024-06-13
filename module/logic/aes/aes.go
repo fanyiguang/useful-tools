@@ -70,7 +70,7 @@ func (a *Aes) Encode(key, iv, content string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	aesData, err := crypto.AesPKCS7Encrypt(jng, pkq, []byte(content))
+	aesData, err := crypto.AESEncrypt(jng, pkq, []byte(content))
 	if err != nil {
 		return "", err
 	}
@@ -86,7 +86,7 @@ func (a *Aes) Decode(key, iv, content string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	aesData, err := crypto.AesPKCS7Decrypt(jng, pkq, []byte(content))
+	aesData, err := crypto.AESEncrypt(jng, pkq, []byte(content))
 	if err != nil {
 		return "", err
 	}

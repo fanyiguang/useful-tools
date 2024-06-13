@@ -7,7 +7,7 @@ import (
 )
 
 func TestSendHttpRequestByProxy(t *testing.T) {
-	tokenCh := make(chan int, 15)
+	tokenCh := make(chan int, 50)
 	for i := 0; i < 1000; i++ {
 		go func() {
 			tokenCh <- 1
@@ -21,7 +21,13 @@ func TestSendHttpRequestByProxy(t *testing.T) {
 					Port     string `json:"port"`
 					Username string `json:"username"`
 					Password string `json:"password"`
-				}{},
+				}{
+					Type:     "socks5",
+					Host:     "127.0.0.1",
+					Port:     "20000",
+					Username: "admin",
+					Password: "123",
+				},
 				Request: struct {
 					Method string              `json:"method"`
 					Urls   []string            `json:"urls"`
