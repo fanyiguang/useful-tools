@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"strings"
 	"time"
-	mySsl "useful-tools/pkg/ssl"
 	"useful-tools/pkg/wlog"
 
 	"github.com/pkg/errors"
@@ -50,7 +49,7 @@ func SendHttpRequestByProxy(reqInfo RequestInfo) (res string, err error) {
 
 	case SSL:
 		var dialer netProxy.Dialer
-		ssl := mySsl.DialSsl{}
+		ssl := DialSsl{}
 		if proxyConfig.Username == "" || proxyConfig.Password == "" {
 			dialer, err = netProxy.SOCKS5("tcp", net.JoinHostPort(proxyConfig.Host, proxyConfig.Port), nil, ssl)
 		} else {
@@ -127,6 +126,24 @@ func SendHttpRequestByProxy(reqInfo RequestInfo) (res string, err error) {
 
 		httpTransport := &http.Transport{
 			Proxy: http.ProxyURL(proxy),
+		}
+		httpClient := &http.Client{Transport: httpTransport, Timeout: time.Duration(reqInfo.Timeout) * time.Second}
+		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)
+
+	case SHADOWSOCKS:
+		httpTransport := &http.Transport{
+			DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
+				shadowsocks, err := NewShadowsocks(Options{
+					Host:     proxyConfig.Host,
+					Port:     proxyConfig.Port,
+					Method:   proxyConfig.Username,
+					Password: proxyConfig.Password,
+				})
+				if err != nil {
+					return nil, err
+				}
+				return shadowsocks.DialContext(ctx, network, addr)
+			},
 		}
 		httpClient := &http.Client{Transport: httpTransport, Timeout: time.Duration(reqInfo.Timeout) * time.Second}
 		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)

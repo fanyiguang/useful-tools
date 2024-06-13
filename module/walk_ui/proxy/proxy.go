@@ -36,6 +36,7 @@ type Page struct {
 	subButton             *walk.PushButton
 	viewContent           *walk.TextEdit
 	convenientModeContent *walk.TextEdit
+	proxyUsernameLabel    *walk.Label
 }
 
 func (p *Page) normalCheckProxy() {
@@ -153,6 +154,11 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 												},
 												OnCurrentIndexChanged: func() {
 													p.logicControl.SetTyp(p.proxyType.Text())
+													if p.proxyType.Text() == "SHADOWSOCKS" {
+														_ = p.proxyUsernameLabel.SetText("加密类型:")
+													} else {
+														_ = p.proxyUsernameLabel.SetText("代理账号:")
+													}
 												},
 											},
 											Label{
@@ -207,6 +213,7 @@ func NewPage(parent walk.Container, IsConvenientMode bool) (common.Page, error) 
 											Label{
 												Text:      "代理账号:",
 												TextColor: walk.RGB(91, 92, 96),
+												AssignTo:  &p.proxyUsernameLabel,
 												Font:      Font{PointSize: 12, Family: "MicrosoftYaHei"},
 											},
 											LineEdit{

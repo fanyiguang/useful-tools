@@ -18,6 +18,7 @@ func proxyType() []*common.CompanyItem {
 		{Key: 3, Name: "SSH"},
 		{Key: 4, Name: "HTTP"},
 		{Key: 5, Name: "HTTPS"},
+		{Key: 6, Name: "SHADOWSOCKS"},
 	}
 }
 

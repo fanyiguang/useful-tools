@@ -1,4 +1,4 @@
-package ssl
+package proxy
 
 import (
 	"context"

@@ -13,6 +13,7 @@ var (
 	ShowPassMenu       *walk.Action
 	HiddenBodyMenu     *walk.Action
 	SaveAesKeyMenu     *walk.Action
+	CloseUpgradeMenu   *walk.Action
 )
 
 func MenuItems(mw *AppMainWindow) []MenuItem {
@@ -107,6 +108,24 @@ func MenuItems(mw *AppMainWindow) []MenuItem {
 						}
 					},
 				},
+				Action{
+					AssignTo: &CloseUpgradeMenu,
+					Text:     "关闭自动更新",
+					//Checked: Bind("openHiddenCB.Visible"),
+					Checked: false,
+					OnTriggered: func() {
+						switch CloseUpgradeMenu.Checked() {
+						case false:
+							_ = CloseUpgradeMenu.SetChecked(true)
+							base.MenuItemLogic.SetCloseUpgrade(true)
+							go base.MenuItemLogic.SetCloseUpgradeToFile(1)
+						case true:
+							_ = CloseUpgradeMenu.SetChecked(false)
+							base.MenuItemLogic.SetCloseUpgrade(false)
+							go base.MenuItemLogic.SetCloseUpgradeToFile(0)
+						}
+					},
+				},
 			},
 		},
 		Menu{
@@ -145,5 +164,8 @@ func initMenuItems() {
 	}
 	if base.MenuItemLogic.SaveAesKey() {
 		_ = SaveAesKeyMenu.SetChecked(true)
+	}
+	if base.MenuItemLogic.CloseUpgrade() {
+		_ = CloseUpgradeMenu.SetChecked(true)
 	}
 }

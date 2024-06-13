@@ -10,12 +10,13 @@ import (
 )
 
 type MenuItem struct {
-	proMode    bool
-	showPass   bool
-	hiddenBody bool
-	saveAesKey bool
-	aesKey     string
-	aesIV      string
+	proMode      bool
+	showPass     bool
+	hiddenBody   bool
+	saveAesKey   bool
+	aesKey       string
+	aesIV        string
+	closeUpgrade bool
 }
 
 func NewMenuItem() *MenuItem {
@@ -28,6 +29,9 @@ func NewMenuItem() *MenuItem {
 	}
 	if s := m.GetHiddenBodyFromFile(); s == 1 {
 		m.hiddenBody = true
+	}
+	if s := m.GetCloseUpgradeFromFile(); s == 1 {
+		m.closeUpgrade = true
 	}
 	if s := m.GetSaveAesKeyFromFile(); s == 1 {
 		m.saveAesKey = true
@@ -69,6 +73,14 @@ func (m *MenuItem) SetProMode(proMode bool) {
 	m.proMode = proMode
 }
 
+func (m *MenuItem) CloseUpgrade() bool {
+	return m.closeUpgrade
+}
+
+func (m *MenuItem) SetCloseUpgrade(closeUpgrade bool) {
+	m.closeUpgrade = closeUpgrade
+}
+
 func (m *MenuItem) ShowPass() bool {
 	return m.showPass
 }
@@ -91,6 +103,18 @@ func (m *MenuItem) SetProModeToFile(state int) {
 
 func (m *MenuItem) GetProModeFromFile() (state int) {
 	s, err := strconv.Atoi(m.GetStateFromFile("view_mode"))
+	if err != nil {
+		return 0
+	}
+	return s
+}
+
+func (m *MenuItem) SetCloseUpgradeToFile(state int) {
+	m.SetStateToFile("close_upgrade", strconv.Itoa(state))
+}
+
+func (m *MenuItem) GetCloseUpgradeFromFile() (state int) {
+	s, err := strconv.Atoi(m.GetStateFromFile("close_upgrade"))
 	if err != nil {
 		return 0
 	}

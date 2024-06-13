@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"unicode"
 )
 
 func TestStrChange(t *testing.T) {
@@ -20,4 +21,13 @@ func TestStrChange(t *testing.T) {
 			fmt.Println(bytes) // 输出: [65]
 		}
 	}
+}
+
+func TestName(t *testing.T) {
+	str := `,"lg_chain_coefficient":"0","lg_disable_auto_switch_line_ips":"","lg_disable_auto_switch_line_regions":"","enable_encrypt_transfer":false,"hosts":{},"local_remote_dns_server":null}`
+	result := strings.TrimRightFunc(str, func(c rune) bool {
+		return !unicode.IsLetter(c) && !unicode.IsNumber(c)
+	})
+	t.Log(result)
+	t.Log([]byte(str))
 }
