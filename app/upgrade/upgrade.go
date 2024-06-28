@@ -27,7 +27,7 @@ func Upgrade(file string, processName string) error {
 	if !utils.FileExists(file) {
 		return fmt.Errorf("%v file not exist", file)
 	}
-	upDir = filepath.Join(config.GetProjectsPath(), "useful-tools_new")
+	upDir = filepath.Join(config.GetProjectsPath(), "usefultools-tools_new")
 	if !utils.FileExists(upDir) {
 		_ = os.MkdirAll(upDir, 0666)
 	}

@@ -8,10 +8,10 @@ build-useful:
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build \
 	--trimpath \
 	-ldflags "-H windowsgui -s -w -X useful-tools/common/config.Version=$(VERSION)" \
-	-o ./_bin/windows/386/$(APPNAME).exe ./
+	-o ./bin/windows/386/$(APPNAME).exe ./
 
 build-upgrade:
 	CGO_ENABLED=1 GOOS=windows GOARCH=386 go build \
 	--trimpath \
 	-ldflags "-H windowsgui" \
-	-o ./_bin/windows/386/$(UPGARDENAME).exe ./cmd/upgrade
+	-o ./bin/windows/386/$(UPGARDENAME).exe ./cmd/upgrade

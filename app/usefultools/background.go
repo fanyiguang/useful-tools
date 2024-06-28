@@ -1,4 +1,4 @@
-package useful
+package usefultools
 
 import (
 	"time"

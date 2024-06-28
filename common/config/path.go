@@ -18,7 +18,7 @@ var (
 
 func init() {
 	localPath := path.GetAppDataLocalPath()
-	SetProjectsPath(filepath.Join(localPath, "useful-tools"))
+	SetProjectsPath(filepath.Join(localPath, "usefultools-tools"))
 	SetTempPath(filepath.Join(GetProjectsPath(), "temp"))
 	SetLogPath(filepath.Join(GetProjectsPath(), "log"))
 	SetSettingPath(filepath.Join(GetProjectsPath(), "setting"))

@@ -1,9 +1,7 @@
-package useful
+package usefultools
 
 import (
-	walkUI "useful-tools/module/walk_ui"
-
-	"github.com/lxn/walk"
+	"useful-tools/app/usefultools/widget"
 	_ "useful-tools/common/config"
 )
 
@@ -14,8 +12,6 @@ func App() (err error) {
 	}
 
 	backGround()
-
-	_ = walk.Resources.SetRootDirPath(`./resource`)
-	walkUI.New().Run()
+	widget.Run()
 	return
 }

@@ -310,7 +310,7 @@ func (mw *AppMainWindow) updateTitle(prefix string) {
 		buf.WriteString(prefix)
 		buf.WriteString(" - ")
 	}
-	buf.WriteString("useful-tools ")
+	buf.WriteString("usefultools-tools ")
 	buf.WriteString(fmt.Sprintf("v%v", config.Version))
 	mw.SetTitle(buf.String())
 }

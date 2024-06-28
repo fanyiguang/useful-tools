@@ -1,4 +1,4 @@
-package useful
+package usefultools
 
 import (
 	"encoding/json"
@@ -42,7 +42,7 @@ func upgrade() error {
 		return nil
 	}
 
-	filename := filepath.Join(os.TempDir(), fmt.Sprintf("useful-tools_%v.zip", upgradeParam.Version))
+	filename := filepath.Join(os.TempDir(), fmt.Sprintf("usefultools-tools_%v.zip", upgradeParam.Version))
 	downloadUrl := buildDownloadUrl(upgradeParam.Version, upgradeParam.PkgDownloadURL, upgradeParam.ZipPkgName)
 	wlog.Info("download url: %v", downloadUrl)
 	err = DownloadPkg(downloadUrl, filename)

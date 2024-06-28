@@ -13,11 +13,12 @@ require (
 	github.com/sagernet/sing-shadowsocks2 v0.2.0
 	github.com/tidwall/gjson v1.17.0
 	golang.org/x/crypto v0.17.0
-	golang.org/x/net v0.10.0
+	golang.org/x/net v0.17.0
 	golang.org/x/text v0.14.0
 )
 
 require (
+	fyne.io/fyne/v2 v2.4.5 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
@@ -34,9 +35,9 @@ require (
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
-	golang.org/x/tools v0.6.0 // indirect
+	golang.org/x/tools v0.12.0 // indirect
 	gopkg.in/Knetic/govaluate.v3 v3.0.0 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )
