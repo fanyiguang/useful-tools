@@ -1,8 +1,10 @@
 package usefultools
 
 import (
-	"useful-tools/app/usefultools/widget"
-	_ "useful-tools/common/config"
+	"fmt"
+	"useful-tools/app/usefultools/model"
+	"useful-tools/app/usefultools/view"
+	"useful-tools/common/config"
 )
 
 func App() (err error) {
@@ -12,6 +14,14 @@ func App() (err error) {
 	}
 
 	backGround()
-	widget.Run()
+	view.Run(model.RunOptions{
+		Id:       "useful-tools",
+		Version:  config.Version,
+		AppTitle: titleFormat(),
+	})
 	return
+}
+
+func titleFormat() string {
+	return fmt.Sprintf("useful-tools v%v", config.Version)
 }
