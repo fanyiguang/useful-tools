@@ -130,7 +130,7 @@ func SendHttpRequestByProxy(reqInfo RequestInfo) (res string, err error) {
 		httpClient := &http.Client{Transport: httpTransport, Timeout: time.Duration(reqInfo.Timeout) * time.Second}
 		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)
 
-	case SHADOWSOCKS:
+	case SHADOWSOCKS, "ss":
 		httpTransport := &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
 				shadowsocks, err := NewShadowsocks(Options{
@@ -152,7 +152,7 @@ func SendHttpRequestByProxy(reqInfo RequestInfo) (res string, err error) {
 		err = errors.New("this proxy type non-existent")
 	}
 
-	err = errors.WithMessagef(err, "proxy info: %v", proxyConfig)
+	err = errors.WithMessagef(err, "proxy info: %v %v", proxyConfig.Host, proxyConfig.Port)
 	return
 }
 
