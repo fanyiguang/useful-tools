@@ -6,9 +6,10 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"strconv"
+	"useful-tools/app/usefultools/view/constant"
 )
 
-func draftScreen(w fyne.Window, mode ViewMode) fyne.CanvasObject {
+func draftScreen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
 	data := make([]string, 1000)
 	for i := range data {
 		data[i] = "Test Item " + strconv.Itoa(i)

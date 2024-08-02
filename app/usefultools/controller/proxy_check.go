@@ -23,8 +23,8 @@ func (p *ProxyCheck) ViewText() string {
 	return p.viewText
 }
 
-func (p *ProxyCheck) PreTemplate() string {
-	return preTemplate()
+func (p *ProxyCheck) ProTemplate() string {
+	return ProProxyCheckTemplate()
 }
 
 func (p *ProxyCheck) SetViewText(viewText string) {
@@ -100,7 +100,7 @@ func (p *ProxyCheck) NormalCheckProxy(ip, port, username, password, typ, urls st
 	return proxy.SendHttpRequestByProxy(reqInfo)
 }
 
-func (p *ProxyCheck) PreCheckProxy(content string, hideBody bool) (string, error) {
+func (p *ProxyCheck) ProCheckProxy(content string, hideBody bool) (string, error) {
 	reqInfo, err := p.parserConvenientModeContent(strings.TrimSpace(content))
 	if err != nil {
 		return "", err

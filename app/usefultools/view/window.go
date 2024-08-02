@@ -9,6 +9,7 @@ import (
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/model"
 	"useful-tools/app/usefultools/resource"
+	"useful-tools/app/usefultools/view/constant"
 )
 
 var topWindow fyne.Window
@@ -31,7 +32,7 @@ func Run(runOpt model.RunOptions) {
 		if fyne.CurrentDevice().IsMobile() {
 			child := application.NewWindow(t.Title)
 			topWindow = child
-			child.SetContent(t.View(topWindow, ViewMode(application.Preferences().Int(NavStatePreferenceProMode))))
+			child.SetContent(t.View(topWindow, constant.ViewMode(application.Preferences().Int(constant.NavStatePreferenceProMode))))
 			child.Show()
 			child.SetOnClosed(func() {
 				topWindow = window
@@ -41,7 +42,7 @@ func Run(runOpt model.RunOptions) {
 
 		title.SetText(t.Title)
 		intro.SetText(t.Intro)
-		content.Objects = []fyne.CanvasObject{t.View(window, ViewMode(application.Preferences().Int(NavStatePreferenceProMode)))}
+		content.Objects = []fyne.CanvasObject{t.View(window, constant.ViewMode(application.Preferences().Int(constant.NavStatePreferenceProMode)))}
 		content.Refresh()
 	}
 

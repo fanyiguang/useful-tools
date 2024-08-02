@@ -3,6 +3,7 @@ package view
 import (
 	"fyne.io/fyne/v2"
 	"net/url"
+	"useful-tools/app/usefultools/view/constant"
 )
 
 func createMenu(a fyne.App, w fyne.Window, setPage func(Page)) *fyne.MainMenu {
@@ -16,53 +17,53 @@ func createMenu(a fyne.App, w fyne.Window, setPage func(Page)) *fyne.MainMenu {
 	majorItem.Action = func() {
 		checkedFn(majorItem, func(item *fyne.MenuItem) {
 			if item.Checked {
-				a.Preferences().SetInt(NavStatePreferenceProMode, 0)
+				a.Preferences().SetInt(constant.NavStatePreferenceProMode, 0)
 			} else {
-				a.Preferences().SetInt(NavStatePreferenceProMode, 1)
+				a.Preferences().SetInt(constant.NavStatePreferenceProMode, 1)
 			}
-			if t, ok := Tutorials[fyne.CurrentApp().Preferences().String(NavStatePreferenceCurrentPage)]; ok {
+			if t, ok := Tutorials[fyne.CurrentApp().Preferences().String(constant.NavStatePreferenceCurrentPage)]; ok {
 				setPage(t)
 			}
 		})
 	}
-	majorItem.Checked = a.Preferences().Int(NavStatePreferenceProMode) == 1
+	majorItem.Checked = a.Preferences().Int(constant.NavStatePreferenceProMode) == 1
 	mode := fyne.NewMenu("模式", majorItem)
 
 	hideBodyItem := fyne.NewMenuItem("隐藏响应体", nil)
 	hideBodyItem.Action = func() {
 		checkedFn(hideBodyItem, func(item *fyne.MenuItem) {
 			if item.Checked {
-				a.Preferences().SetBool(NavStatePreferenceHideBody, false)
+				a.Preferences().SetBool(constant.NavStatePreferenceHideBody, false)
 			} else {
-				a.Preferences().SetBool(NavStatePreferenceHideBody, true)
+				a.Preferences().SetBool(constant.NavStatePreferenceHideBody, true)
 			}
 		})
 	}
-	hideBodyItem.Checked = a.Preferences().Bool(NavStatePreferenceHideBody)
+	hideBodyItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceHideBody)
 	view := fyne.NewMenu("视图", hideBodyItem)
 
 	saveAesItem := fyne.NewMenuItem("保存AES密钥", nil)
 	saveAesItem.Action = func() {
 		checkedFn(saveAesItem, func(item *fyne.MenuItem) {
 			if item.Checked {
-				a.Preferences().SetBool(NavStatePreferenceSaveAesKey, false)
+				a.Preferences().SetBool(constant.NavStatePreferenceSaveAesKey, false)
 			} else {
-				a.Preferences().SetBool(NavStatePreferenceSaveAesKey, true)
+				a.Preferences().SetBool(constant.NavStatePreferenceSaveAesKey, true)
 			}
 		})
 	}
-	saveAesItem.Checked = a.Preferences().Bool(NavStatePreferenceSaveAesKey)
+	saveAesItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceSaveAesKey)
 	closeUpgradeItem := fyne.NewMenuItem("关闭自动更新", nil)
 	closeUpgradeItem.Action = func() {
 		checkedFn(closeUpgradeItem, func(item *fyne.MenuItem) {
 			if item.Checked {
-				a.Preferences().SetBool(NavStatePreferenceCloseUpgrade, false)
+				a.Preferences().SetBool(constant.NavStatePreferenceCloseUpgrade, false)
 			} else {
-				a.Preferences().SetBool(NavStatePreferenceCloseUpgrade, true)
+				a.Preferences().SetBool(constant.NavStatePreferenceCloseUpgrade, true)
 			}
 		})
 	}
-	closeUpgradeItem.Checked = a.Preferences().Bool(NavStatePreferenceCloseUpgrade)
+	closeUpgradeItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceCloseUpgrade)
 	action := fyne.NewMenu("功能", saveAesItem, closeUpgradeItem)
 
 	feedbackAesItem := fyne.NewMenuItem("反馈", func() {

@@ -1,4 +1,4 @@
-package view
+package constant
 
 const (
 	NavStatePreferenceCurrentPage  = "currentPage"

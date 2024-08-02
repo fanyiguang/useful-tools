@@ -1,4 +1,4 @@
-package view
+package widget
 
 import (
 	"fyne.io/fyne/v2"
@@ -20,13 +20,13 @@ func shortcutFocused(s fyne.Shortcut, w fyne.Window) {
 	}
 }
 
-func makeCell() fyne.CanvasObject {
+func MakeCell() fyne.CanvasObject {
 	rect := canvas.NewRectangle(&color.Transparent)
 	rect.SetMinSize(fyne.NewSize(30, 30))
 	return rect
 }
 
-func makeCellSize(w, h float32) fyne.CanvasObject {
+func MakeCellSize(w, h float32) fyne.CanvasObject {
 	rect := canvas.NewRectangle(&color.Transparent)
 	rect.SetMinSize(fyne.NewSize(w, h))
 	return rect

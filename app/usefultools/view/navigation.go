@@ -4,12 +4,15 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"useful-tools/app/usefultools/view/constant"
+	"useful-tools/app/usefultools/view/portcheck"
+	"useful-tools/app/usefultools/view/proxycheck"
 )
 
 // Page defines the data structure for a tutorial
 type Page struct {
 	Title, Intro string
-	View         func(w fyne.Window, mode ViewMode) fyne.CanvasObject
+	View         func(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject
 	SupportWeb   bool
 }
 
@@ -23,12 +26,12 @@ var (
 		},
 		"代理检测": {"代理检测",
 			"多协议代理可用性检测",
-			proxyCheckScreen,
+			proxycheck.Screen,
 			true,
 		},
 		"端口检测": {"端口检测",
 			"TCP/UDP端口检测",
-			tcpUdpCheckScreen,
+			portcheck.Screen,
 			true,
 		},
 		"DNS查询": {"DNS查询",
@@ -77,14 +80,14 @@ func createNavigation(setPage func(page Page), loadPrevious bool) fyne.CanvasObj
 				if unsupportedTutorial(t) {
 					return
 				}
-				a.Preferences().SetString(NavStatePreferenceCurrentPage, uid)
+				a.Preferences().SetString(constant.NavStatePreferenceCurrentPage, uid)
 				setPage(t)
 			}
 		},
 	}
 
 	if loadPrevious {
-		currentPref := a.Preferences().StringWithFallback(NavStatePreferenceCurrentPage, "cgdz")
+		currentPref := a.Preferences().StringWithFallback(constant.NavStatePreferenceCurrentPage, "cgdz")
 		tree.Select(currentPref)
 	}
 

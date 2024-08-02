@@ -1,4 +1,4 @@
-package view
+package proxycheck
 
 import (
 	"errors"
@@ -11,92 +11,98 @@ import (
 	"strconv"
 	"strings"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/view/constant"
+	viewWidget "useful-tools/app/usefultools/view/widget"
 	"useful-tools/utils"
 )
 
 var (
-	logic = controller.NewProxyCheck()
-	view  *widget.Entry
+	logics = controller.NewProxyCheck()
+	view   *widget.Entry
+	scroll *container.Scroll
 )
 
-func proxyCheckScreen(w fyne.Window, mode ViewMode) fyne.CanvasObject {
+func Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
 	return container.NewHSplit(leftProxyCheck(mode), rightProxyCheck(w))
 }
 
-func leftProxyCheck(mode ViewMode) fyne.CanvasObject {
-	mode = ViewMode(fyne.CurrentApp().Preferences().Int(NavStatePreferenceProMode))
+func leftProxyCheck(mode constant.ViewMode) fyne.CanvasObject {
 	logrus.Infof("proxy check mode: %d", mode)
 	switch mode {
-	case ViewModePro:
-		right := makeCellSize(10, 10)
-		left := makeCellSize(10, 10)
-		top := makeCellSize(10, 10)
-		bottom := makeCellSize(10, 10)
-
-		multi := widget.NewMultiLineEntry()
-		multi.Wrapping = fyne.TextWrapWord
-		if logic.PreModeInput() != "" {
-			multi.SetText(logic.PreModeInput())
-		} else {
-			multi.SetText(logic.PreTemplate())
-		}
-		multi.OnChanged = func(s string) {
-			logrus.Infof("proxy: %s", s)
-			logic.SetPreModeInput(s)
-		}
-
-		box := container.NewGridWithColumns(2, &widget.Button{
-			Text:       "清空",
-			Icon:       theme.Icon(theme.IconNameContentClear),
-			Importance: widget.MediumImportance,
-			OnTapped: func() {
-				logrus.Infof("pre clear proxy: %s", multi.Text)
-				multi.SetText("")
-			},
-		}, &widget.Button{
-			Text:       "检测",
-			Icon:       theme.Icon(theme.IconNameContentCopy),
-			Importance: widget.MediumImportance,
-			OnTapped: func() {
-				logrus.Infof("pre check proxy: %s", multi.Text)
-				response, err := logic.PreCheckProxy(multi.Text, fyne.CurrentApp().Preferences().Bool(NavStatePreferenceHideBody))
-				if err != nil {
-					logrus.Warnf("pre check proxy failed: %s", err)
-					view.SetText(err.Error())
-					return
-				}
-				logrus.Infof("pre check proxy result: %s", response)
-				view.SetText(response)
-			},
-		})
-		border := container.NewBorder(nil, box, nil, nil, container.NewVScroll(multi))
-		return container.NewBorder(top, bottom, left, right, border)
+	case constant.ViewModePro:
+		return proView()
 	default:
-		right := makeCellSize(10, 10)
-		left := makeCellSize(10, 10)
-		top := makeCellSize(10, 10)
-		bottom := makeCellSize(10, 10)
+		right := viewWidget.MakeCellSize(10, 10)
+		left := viewWidget.MakeCellSize(10, 10)
+		top := viewWidget.MakeCellSize(10, 10)
+		bottom := viewWidget.MakeCellSize(10, 10)
 		return container.NewBorder(top, bottom, left, right, checkFrom())
 	}
 }
 
+func proView() fyne.CanvasObject {
+	right := viewWidget.MakeCellSize(10, 10)
+	left := viewWidget.MakeCellSize(10, 10)
+	top := viewWidget.MakeCellSize(10, 10)
+	bottom := viewWidget.MakeCellSize(10, 10)
+
+	multi := widget.NewMultiLineEntry()
+	multi.Wrapping = fyne.TextWrapWord
+	if logics.PreModeInput() != "" {
+		multi.SetText(logics.PreModeInput())
+	} else {
+		multi.SetText(logics.ProTemplate())
+	}
+	multi.OnChanged = func(s string) {
+		logrus.Infof("proxy: %s", s)
+		logics.SetPreModeInput(s)
+	}
+
+	box := container.NewGridWithColumns(2, &widget.Button{
+		Text:       "清空",
+		Icon:       theme.Icon(theme.IconNameContentClear),
+		Importance: widget.MediumImportance,
+		OnTapped: func() {
+			logrus.Infof("pre clear proxy: %s", multi.Text)
+			multi.SetText("")
+		},
+	}, &widget.Button{
+		Text:       "检测",
+		Icon:       theme.Icon(theme.IconNameContentCopy),
+		Importance: widget.MediumImportance,
+		OnTapped: func() {
+			logrus.Infof("pre check proxy: %s", multi.Text)
+			response, err := logics.ProCheckProxy(multi.Text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
+			if err != nil {
+				logrus.Warnf("pre check proxy failed: %s", err)
+				view.SetText(err.Error())
+				return
+			}
+			logrus.Infof("pre check proxy result: %s", response)
+			view.SetText(response)
+		},
+	})
+	border := container.NewBorder(nil, box, nil, nil, container.NewVScroll(multi))
+	return container.NewBorder(top, bottom, left, right, border)
+}
+
 func rightProxyCheck(w fyne.Window) fyne.CanvasObject {
-	right := makeCellSize(10, 10)
-	left := makeCellSize(10, 10)
-	top := makeCellSize(10, 10)
-	bottom := makeCellSize(10, 10)
+	right := viewWidget.MakeCellSize(10, 10)
+	left := viewWidget.MakeCellSize(10, 10)
+	top := viewWidget.MakeCellSize(10, 10)
+	bottom := viewWidget.MakeCellSize(10, 10)
 
 	view = widget.NewMultiLineEntry()
 	view.Wrapping = fyne.TextWrapWord
-	if logic.ViewText() != "" {
-		view.SetText(logic.ViewText())
+	view.TextStyle = fyne.TextStyle{Bold: true}
+	if logics.ViewText() != "" {
+		view.SetText(logics.ViewText())
 	} else {
 		view.Text = "检测结果"
 	}
-	view.TextStyle = fyne.TextStyle{Bold: true}
 	view.OnChanged = func(s string) {
 		logrus.Infof("proxy check result: %s", s)
-		logic.SetViewText(s)
+		logics.SetViewText(s)
 	}
 	//view.Disable()
 
@@ -114,30 +120,31 @@ func rightProxyCheck(w fyne.Window) fyne.CanvasObject {
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("proxy check view check copy: %s", view.Text)
-			w.Clipboard().SetContent(view.Text)
+			w.Clipboard().SetContent(strings.TrimSpace(view.Text))
 		},
 	})
-	border := container.NewBorder(nil, box, nil, nil, container.NewVScroll(view))
+	scroll = container.NewVScroll(view)
+	border := container.NewBorder(nil, box, nil, nil, scroll)
 	return container.NewBorder(top, bottom, left, right, border)
 }
 
 func checkFrom() fyne.CanvasObject {
-	proxyTypeSelect := widget.NewSelect(logic.SupportProxyTypeList(), func(s string) {
+	proxyTypeSelect := widget.NewSelect(logics.SupportProxyTypeList(), func(s string) {
 		logrus.Infof("proxy check type: %s", s)
-		logic.SetTyp(s)
+		logics.SetTyp(s)
 	})
-	if logic.Typ() != "" {
-		proxyTypeSelect.SetSelected(logic.Typ())
+	if logics.Typ() != "" {
+		proxyTypeSelect.SetSelected(logics.Typ())
 	} else {
 		proxyTypeSelect.SetSelected("SOCKS5")
 	}
 
 	host := widget.NewEntry()
 	host.SetPlaceHolder("代理地址")
-	host.SetText(logic.Host())
+	host.SetText(logics.Host())
 	host.OnChanged = func(s string) {
 		logrus.Infof("proxy check host: %s", s)
-		logic.SetHost(s)
+		logics.SetHost(s)
 		host.SetText(s)
 	}
 	host.Validator = validation.NewAllStrings(func(s string) error {
@@ -151,10 +158,10 @@ func checkFrom() fyne.CanvasObject {
 
 	port := widget.NewEntry()
 	port.SetPlaceHolder("代理端口")
-	port.SetText(logic.Port())
+	port.SetText(logics.Port())
 	port.OnChanged = func(s string) {
 		logrus.Infof("proxy check port: %s", s)
-		logic.SetPort(s)
+		logics.SetPort(s)
 		port.SetText(s)
 	}
 	port.Validator = validation.NewAllStrings(func(s string) error {
@@ -171,26 +178,26 @@ func checkFrom() fyne.CanvasObject {
 
 	username := widget.NewEntry()
 	username.SetPlaceHolder("代理账号")
-	username.SetText(logic.Username())
+	username.SetText(logics.Username())
 	username.OnChanged = func(s string) {
 		logrus.Infof("proxy check username: %s", s)
-		logic.SetUsername(s)
+		logics.SetUsername(s)
 	}
 
 	password := widget.NewPasswordEntry()
 	password.SetPlaceHolder("代理密码")
-	password.SetText(logic.Password())
+	password.SetText(logics.Password())
 	password.OnChanged = func(s string) {
 		logrus.Infof("proxy check password: %s", s)
-		logic.SetPassword(s)
+		logics.SetPassword(s)
 	}
 
 	urls := widget.NewMultiLineEntry()
 	urls.SetPlaceHolder("代理URL")
-	urls.SetText(logic.Urls())
+	urls.SetText(logics.Urls())
 	urls.OnChanged = func(s string) {
 		logrus.Infof("proxy check urls: %s", s)
-		logic.SetUrls(s)
+		logics.SetUrls(s)
 	}
 
 	var form *widget.StyleForm
@@ -205,7 +212,7 @@ func checkFrom() fyne.CanvasObject {
 		},
 		OnCancel: func() {
 			logrus.Infof("proxy check page cancelled")
-			proxyTypeSelect.SetSelected("SOCKS5")
+			//proxyTypeSelect.SetSelected("SOCKS5")
 			host.SetText("")
 			port.SetText("")
 			username.SetText("")
@@ -214,7 +221,7 @@ func checkFrom() fyne.CanvasObject {
 		},
 		OnSubmit: func() {
 			logrus.Infof("proxy check page submitted")
-			response, err := logic.NormalCheckProxy(host.Text, port.Text, username.Text, password.Text, proxyTypeSelect.Selected, urls.Text, fyne.CurrentApp().Preferences().Bool(NavStatePreferenceHideBody))
+			response, err := logics.NormalCheckProxy(host.Text, port.Text, username.Text, password.Text, proxyTypeSelect.Selected, urls.Text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
 			if err != nil {
 				logrus.Errorf("proxy check error: %v", err)
 				view.SetText(err.Error())
