@@ -1,4 +1,4 @@
-package portcheck
+package dnsquery
 
 import (
 	"fmt"
@@ -10,17 +10,15 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
-	"strconv"
 	"strings"
 	"time"
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
-	"useful-tools/utils"
 )
 
 var (
-	logics = controller.NewPortCheck()
+	logics = controller.NewDnsQuery()
 	view   *widget.Entry
 	scroll *container.Scroll
 )
@@ -30,7 +28,7 @@ func Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
 }
 
 func leftScreen(mode constant.ViewMode) fyne.CanvasObject {
-	logrus.Infof("port check mode: %d", mode)
+	logrus.Infof("dns query mode: %d", mode)
 	switch mode {
 	case constant.ViewModePro:
 		return proView()
@@ -39,7 +37,7 @@ func leftScreen(mode constant.ViewMode) fyne.CanvasObject {
 		left := viewWidget.MakeCellSize(10, 10)
 		top := viewWidget.MakeCellSize(10, 10)
 		bottom := viewWidget.MakeCellSize(10, 10)
-		return container.NewBorder(top, bottom, left, right, portCheckFrom())
+		return container.NewBorder(top, bottom, left, right, From())
 	}
 }
 
@@ -57,7 +55,7 @@ func proView() fyne.CanvasObject {
 		multi.SetText(logics.PreTemplate())
 	}
 	multi.OnChanged = func(s string) {
-		logrus.Infof("port: %s", s)
+		logrus.Infof("dns query: %s", s)
 		logics.SetPreModeInput(s)
 	}
 
@@ -66,7 +64,7 @@ func proView() fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("pre clear port: %s", multi.Text)
+			logrus.Infof("pre clear dns query: %s", multi.Text)
 			multi.SetText("")
 		},
 	}, &widget.Button{
@@ -74,14 +72,14 @@ func proView() fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("pre check port: %s", multi.Text)
-			response, err := logics.ProDial(multi.Text)
+			logrus.Infof("pre check dns query: %s", multi.Text)
+			response, err := logics.ProQuery(multi.Text)
 			if err != nil {
-				logrus.Errorf("pro port check error: %v", err)
-				view.SetText(logFormat(gjson.Get(multi.Text, "network").String(), gjson.Get(multi.Text, "local_ip").String(), gjson.Get(multi.Text, "host").String(), gjson.Get(multi.Text, "port").String(), err.Error()) + view.Text)
+				logrus.Errorf("pro dns query error: %v", err)
+				view.SetText(logFormat(gjson.Get(multi.Text, "server").String(), gjson.Get(multi.Text, "domain").String(), err.Error()) + view.Text)
 			} else {
-				logrus.Infof("pro port check result: %v", response)
-				view.SetText(logFormat(gjson.Get(multi.Text, "network").String(), gjson.Get(multi.Text, "local_ip").String(), gjson.Get(multi.Text, "host").String(), gjson.Get(multi.Text, "port").String(), "OK !") + view.Text)
+				logrus.Infof("pro dns query result: %v", response)
+				view.SetText(logFormat(gjson.Get(multi.Text, "server").String(), gjson.Get(multi.Text, "domain").String(), strings.Join(response, " ")) + view.Text)
 			}
 		},
 	})
@@ -105,7 +103,7 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 		view.Text = ""
 	}
 	view.OnChanged = func(s string) {
-		logrus.Infof("port check result: %s", s)
+		logrus.Infof("dns query result: %s", s)
 		logics.SetViewText(s)
 	}
 	//view.Disable()
@@ -115,7 +113,7 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("port check view check clear: %s", view.Text)
+			logrus.Infof("dns query view check clear: %s", view.Text)
 			view.SetText("")
 		},
 	}, &widget.Button{
@@ -123,7 +121,7 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("port check view check copy: %s", view.Text)
+			logrus.Infof("dns query view check copy: %s", view.Text)
 			w.Clipboard().SetContent(strings.TrimSpace(view.Text))
 		},
 	})
@@ -132,67 +130,35 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 	return container.NewBorder(top, bottom, left, right, border)
 }
 
-func portCheckFrom() fyne.CanvasObject {
-	networkSelect := widget.NewSelect(logics.NetworkList(), func(s string) {
-		logrus.Infof("port check scheme: %s", s)
-		logics.SetNetwork(s)
-	})
-	if logics.Network() != "" {
-		networkSelect.SetSelected(logics.Network())
-	} else {
-		networkSelect.SetSelected("TCP")
-	}
-
-	interfaceSelect := widget.NewSelect(logics.GetInterfaceList(), func(s string) {
-		logrus.Infof("port check interface: %s", s)
-		logics.SetIFace(s)
-	})
-	if logics.IFace() != "" {
-		interfaceSelect.SetSelected(logics.IFace())
-	} else {
-		interfaceSelect.SetSelected("自动")
-	}
-
+func From() fyne.CanvasObject {
 	host := widget.NewEntry()
-	host.SetPlaceHolder("目标地址")
-	host.SetText(logics.Host())
+	host.SetPlaceHolder("DNS地址")
+	if logics.Host() == "" {
+		host.SetText("默认")
+	} else {
+		host.SetText(logics.Host())
+	}
 	host.OnChanged = func(s string) {
-		logrus.Infof("port check host: %s", s)
+		logrus.Infof("dns query host: %s", s)
 		logics.SetHost(s)
 		host.SetText(s)
 	}
-	host.Validator = validation.NewAllStrings(func(s string) error {
-		logrus.Infof("port check validation host: %s", s)
-		if s == "" {
-			return nil
-		}
-		if ip := utils.FindIP(strings.TrimSpace(s)); ip != nil {
-			return nil
-		} else {
-			return errors.New("地址格式错误！")
-		}
-	})
 
-	port := widget.NewEntry()
-	port.SetPlaceHolder("目标端口")
-	port.SetText(logics.Port())
-	port.OnChanged = func(s string) {
-		logrus.Infof("port check port: %s", s)
-		logics.SetPort(s)
-		port.SetText(s)
+	domain := widget.NewEntry()
+	domain.SetPlaceHolder("解析域名")
+	domain.SetText(logics.Domain())
+	domain.OnChanged = func(s string) {
+		logrus.Infof("dns query domain: %s", s)
+		logics.SetDomain(s)
+		domain.SetText(s)
 	}
-	port.Validator = validation.NewAllStrings(func(s string) error {
-		logrus.Infof("prot check validation domain: %s", s)
+	domain.Validator = validation.NewAllStrings(func(s string) error {
+		logrus.Infof("dns query validation domain: %s", s)
 		if s == "" {
 			return nil
 		}
-		iPort, err := strconv.Atoi(strings.TrimSpace(s))
-		if err != nil {
-			logrus.Warnf("strconv.Atoi error: %v", err)
-			return errors.New("端口错误！")
-		}
-		if iPort > 65535 || iPort < 0 {
-			return errors.New("端口不在合法范围内！")
+		if !strings.Contains(s, ".") {
+			return errors.New("域名格式错误！")
 		}
 		return nil
 	})
@@ -200,25 +166,23 @@ func portCheckFrom() fyne.CanvasObject {
 	var form *widget.StyleForm
 	form = &widget.StyleForm{
 		Items: []*widget.StyleFormItem{
-			{Text: "协议类型:", Widget: networkSelect, HintText: "必选"},
-			{Text: "本地网卡:", Widget: interfaceSelect, HintText: "必选"},
-			{Text: "目标地址:", Widget: host, HintText: "必填"},
-			{Text: "目标端口:", Widget: port, HintText: "必填"},
+			{Text: "DNS地址:", Widget: host, HintText: "必填"},
+			{Text: "解析域名:", Widget: domain, HintText: "必填"},
 		},
 		OnCancel: func() {
-			logrus.Infof("port check page cancelled")
+			logrus.Infof("dns query page cancelled")
 			host.SetText("")
-			port.SetText("")
+			domain.SetText("")
 		},
 		OnSubmit: func() {
-			logrus.Infof("port check page submitted")
-			response, err := logics.NormalDial(networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text)
+			logrus.Infof("dns query page submitted")
+			response, err := logics.NormalDns(host.Text, domain.Text)
 			if err != nil {
-				logrus.Errorf("port check error: %v", err)
-				view.SetText(logFormat(networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text, err.Error()) + view.Text)
+				logrus.Errorf("dns query error: %v", err)
+				view.SetText(logFormat(host.Text, domain.Text, err.Error()) + view.Text)
 			} else {
-				logrus.Infof("port check result: %v", response)
-				view.SetText(logFormat(networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text, "OK !") + view.Text)
+				logrus.Infof("dns query result: %v", response)
+				view.SetText(logFormat(host.Text, domain.Text, strings.Join(response, " ")) + view.Text)
 			}
 		},
 		SubmitText: "检测",
@@ -233,6 +197,6 @@ func portCheckFrom() fyne.CanvasObject {
 	return form
 }
 
-func logFormat(network, i, host, port, msg string) string {
-	return fmt.Sprintf("[%v] %v:%v(%v)[%v] => %v\r\n\r\n", time.Now().Format(`01-02 15:04:05`), host, port, network, i, msg)
+func logFormat(server, host, msg string) string {
+	return fmt.Sprintf("[%v] %v(%v) => %v\r\n\r\n", time.Now().Format(`06-01-02 15:04:05`), host, server, msg)
 }

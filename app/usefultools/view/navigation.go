@@ -5,6 +5,8 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"useful-tools/app/usefultools/view/constant"
+	"useful-tools/app/usefultools/view/dnsquery"
+	"useful-tools/app/usefultools/view/draft"
 	"useful-tools/app/usefultools/view/portcheck"
 	"useful-tools/app/usefultools/view/proxycheck"
 )
@@ -21,7 +23,7 @@ var (
 	Tutorials = map[string]Page{
 		"草稿搭子": {"草稿搭子",
 			"合理且好用的草稿纸",
-			draftScreen,
+			draft.Screen,
 			true,
 		},
 		"代理检测": {"代理检测",
@@ -36,7 +38,7 @@ var (
 		},
 		"DNS查询": {"DNS查询",
 			"一个简单的DNS查询",
-			dnsQueryScreen,
+			dnsquery.Screen,
 			true,
 		},
 	}

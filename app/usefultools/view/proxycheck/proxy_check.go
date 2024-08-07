@@ -149,6 +149,9 @@ func checkFrom() fyne.CanvasObject {
 	}
 	host.Validator = validation.NewAllStrings(func(s string) error {
 		logrus.Infof("proxy check validation host: %s", s)
+		if s == "" {
+			return nil
+		}
 		if ip := utils.FindIP(strings.TrimSpace(s)); ip != nil {
 			return nil
 		} else {
@@ -165,6 +168,10 @@ func checkFrom() fyne.CanvasObject {
 		port.SetText(s)
 	}
 	port.Validator = validation.NewAllStrings(func(s string) error {
+		logrus.Infof("proxy check validation domain: %s", s)
+		if s == "" {
+			return nil
+		}
 		iPort, err := strconv.Atoi(strings.TrimSpace(s))
 		if err != nil {
 			logrus.Warnf("strconv.Atoi error: %v", err)

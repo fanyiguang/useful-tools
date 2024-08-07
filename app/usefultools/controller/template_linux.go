@@ -37,3 +37,12 @@ func ProPortCheckTemplate() string {
 		"    \"port\": \"\"\r" +
 		"}"
 }
+
+func ProDnsQueryTemplate() string {
+	return "{\r" +
+		"    \"server\": \"114.114.114.114\",\r" +
+		"    \"domain\": \"www.baidu.com\",\r" +
+		"    \"timeout\": 10,\r" +
+		"    \"qtype\": \"ipv4\"\r" +
+		"}"
+}

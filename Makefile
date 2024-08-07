@@ -15,3 +15,8 @@ build-upgrade:
 	--trimpath \
 	-ldflags "-H windowsgui" \
 	-o ./bin/windows/386/$(UPGARDENAME).exe ./cmd/upgrade
+
+build-useful-2:
+	CGO_ENABLED=1 GOOS=windows go build  \
+	--trimpath \
+	-o ./bin/windows/amd64/$(APPNAME).exe ./cmd/usefultools

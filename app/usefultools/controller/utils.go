@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/pkg/errors"
 	"strings"
+	"useful-tools/helper/net"
 	"useful-tools/pkg/proxy"
 )
 
@@ -35,4 +36,13 @@ func buildRequestInfo(proxyInfo []string) (proxy.RequestInfo, error) {
 		},
 		Timeout: 15,
 	}, nil
+}
+
+func buildDnsInfo(info []string) net.DnsInfo {
+	return net.DnsInfo{
+		Server:  info[0],
+		Domain:  info[1],
+		Qtype:   "",
+		Timeout: 10,
+	}
 }
