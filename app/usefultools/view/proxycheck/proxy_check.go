@@ -2,6 +2,7 @@ package proxycheck
 
 import (
 	"errors"
+	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/data/validation"
@@ -17,9 +18,10 @@ import (
 )
 
 var (
-	logics = controller.NewProxyCheck()
-	view   *widget.Entry
-	scroll *container.Scroll
+	logics       = controller.NewProxyCheck()
+	view         *widget.Entry
+	scroll       *container.Scroll
+	latestParams string
 )
 
 func Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
@@ -46,7 +48,7 @@ func proView() fyne.CanvasObject {
 	top := viewWidget.MakeCellSize(10, 10)
 	bottom := viewWidget.MakeCellSize(10, 10)
 
-	multi := widget.NewMultiLineEntry()
+	multi := widget.NewMultiLineEntryEx(nil, nil, nil, logics.FormatJson)
 	multi.Wrapping = fyne.TextWrapWord
 	if logics.PreModeInput() != "" {
 		multi.SetText(logics.PreModeInput())
@@ -71,15 +73,21 @@ func proView() fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("pre check proxy: %s", multi.Text)
-			response, err := logics.ProCheckProxy(multi.Text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
-			if err != nil {
-				logrus.Warnf("pre check proxy failed: %s", err)
-				view.SetText(err.Error())
-				return
-			}
-			logrus.Infof("pre check proxy result: %s", response)
-			view.SetText(response)
+			latestParams = multi.Text
+			go func() {
+				text := multi.Text
+				logrus.Infof("pre check proxy: %s", text)
+				response, err := logics.ProCheckProxy(text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
+				if latestParams == text {
+					if err != nil {
+						logrus.Warnf("pre check proxy failed: %s", err)
+						view.SetText(err.Error())
+						return
+					}
+					logrus.Infof("pre check proxy result: %s", response)
+					view.SetText(response)
+				}
+			}()
 		},
 	})
 	border := container.NewBorder(nil, box, nil, nil, container.NewVScroll(multi))
@@ -227,15 +235,27 @@ func checkFrom() fyne.CanvasObject {
 			urls.SetText("")
 		},
 		OnSubmit: func() {
-			logrus.Infof("proxy check page submitted")
-			response, err := logics.NormalCheckProxy(host.Text, port.Text, username.Text, password.Text, proxyTypeSelect.Selected, urls.Text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
-			if err != nil {
-				logrus.Errorf("proxy check error: %v", err)
-				view.SetText(err.Error())
-				return
-			}
-			logrus.Infof("proxy check result: %s", response)
-			view.SetText(response)
+			latestParams = fmt.Sprintf("%v%v%v%v%v%v%v", host.Text, port.Text, username.Text, password.Text, proxyTypeSelect.Selected, urls.Text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
+			go func() {
+				hostText := host.Text
+				portText := port.Text
+				usernameText := username.Text
+				passwordText := password.Text
+				selectText := proxyTypeSelect.Selected
+				urlText := urls.Text
+				isHideBody := fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody)
+				logrus.Infof("proxy check page submitted")
+				response, err := logics.NormalCheckProxy(hostText, portText, usernameText, passwordText, selectText, urlText, isHideBody)
+				if latestParams == fmt.Sprintf("%v%v%v%v%v%v%v", hostText, portText, usernameText, passwordText, selectText, urlText, isHideBody) {
+					if err != nil {
+						logrus.Errorf("proxy check error: %v", err)
+						view.SetText(err.Error())
+						return
+					}
+					logrus.Infof("proxy check result: %s", response)
+					view.SetText(response)
+				}
+			}()
 		},
 		SubmitText: "检测",
 		CancelText: "清空",

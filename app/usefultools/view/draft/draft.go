@@ -13,8 +13,6 @@ import (
 
 var (
 	logics    = controller.NewDraft()
-	view      *widget.Entry
-	scroll    *container.Scroll
 	rightTabs *container.DocTabs
 	leftTabs  *container.DocTabs
 )
@@ -76,7 +74,8 @@ func createLeftCanvasObject(title, placeHolder, text string) *container.TabItem 
 		leftTabs.Append(leftTabs.CreateTab())
 		logrus.Infof("create new left doc: %s", leftTabs.Selected().Text)
 		leftTabs.SelectIndex(len(leftTabs.Items) - 1)
-	})
+	}, logics.FormatJson)
+
 	leftMultiEntry.PlaceHolder = placeHolder
 	if text != "" {
 		leftMultiEntry.SetText(text)
@@ -85,6 +84,7 @@ func createLeftCanvasObject(title, placeHolder, text string) *container.TabItem 
 		logrus.Infof("left draft doc[%s] content: %s", title, s)
 		logics.AddLeftDocs(title, s, placeHolder)
 	}
+	leftMultiEntry.Wrapping = fyne.TextWrapWord
 	logics.AddLeftDocs(title, text, placeHolder)
 	return container.NewTabItem(title, leftMultiEntry)
 }
@@ -106,7 +106,7 @@ func createRightCanvasObject(title, placeHolder, text string) *container.TabItem
 		rightTabs.Append(rightTabs.CreateTab())
 		logrus.Infof("create new right doc: %s", rightTabs.Selected().Text)
 		rightTabs.SelectIndex(len(rightTabs.Items) - 1)
-	})
+	}, logics.FormatJson)
 	rightMultiEntry.PlaceHolder = placeHolder
 	if text != "" {
 		rightMultiEntry.SetText(text)
@@ -115,6 +115,7 @@ func createRightCanvasObject(title, placeHolder, text string) *container.TabItem
 		logrus.Infof("right draft doc[%s] content: %s", title, s)
 		logics.AddRightDocs(title, s, placeHolder)
 	}
+	rightMultiEntry.Wrapping = fyne.TextWrapWord
 	logics.AddRightDocs(title, text, placeHolder)
 	return container.NewTabItem(title, rightMultiEntry)
 }

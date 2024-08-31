@@ -9,6 +9,7 @@ import (
 )
 
 type ProxyCheck struct {
+	Base
 	typ          string
 	host         string
 	port         string

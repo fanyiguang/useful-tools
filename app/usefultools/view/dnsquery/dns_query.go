@@ -18,9 +18,10 @@ import (
 )
 
 var (
-	logics = controller.NewDnsQuery()
-	view   *widget.Entry
-	scroll *container.Scroll
+	logics       = controller.NewDnsQuery()
+	view         *widget.Entry
+	scroll       *container.Scroll
+	latestParams string
 )
 
 func Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
@@ -47,7 +48,7 @@ func proView() fyne.CanvasObject {
 	top := viewWidget.MakeCellSize(10, 10)
 	bottom := viewWidget.MakeCellSize(10, 10)
 
-	multi := widget.NewMultiLineEntry()
+	multi := widget.NewMultiLineEntryEx(nil, nil, nil, logics.FormatJson)
 	multi.Wrapping = fyne.TextWrapWord
 	if logics.PreModeInput() != "" {
 		multi.SetText(logics.PreModeInput())
@@ -72,18 +73,24 @@ func proView() fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("pre check dns query: %s", multi.Text)
-			response, err := logics.ProQuery(multi.Text)
-			if err != nil {
-				logrus.Errorf("pro dns query error: %v", err)
-				view.SetText(logFormat(gjson.Get(multi.Text, "server").String(), gjson.Get(multi.Text, "domain").String(), err.Error()) + view.Text)
-			} else {
-				logrus.Infof("pro dns query result: %v", response)
-				view.SetText(logFormat(gjson.Get(multi.Text, "server").String(), gjson.Get(multi.Text, "domain").String(), strings.Join(response, " ")) + view.Text)
-			}
+			latestParams = multi.Text
+			go func() {
+				text := multi.Text
+				logrus.Infof("pre check dns query: %s", text)
+				response, err := logics.ProQuery(text)
+				if latestParams == multi.Text {
+					if err != nil {
+						logrus.Errorf("pro dns query error: %v", err)
+						view.SetText(logFormat(gjson.Get(text, "server").String(), gjson.Get(text, "domain").String(), err.Error()) + view.Text)
+					} else {
+						logrus.Infof("pro dns query result: %v", response)
+						view.SetText(logFormat(gjson.Get(text, "server").String(), gjson.Get(text, "domain").String(), strings.Join(response, " ")) + text)
+					}
+				}
+			}()
 		},
 	})
-	border := container.NewBorder(nil, box, nil, nil, container.NewVScroll(multi))
+	border := container.NewBorder(nil, box, nil, nil, multi)
 	return container.NewBorder(top, bottom, left, right, border)
 }
 
@@ -175,15 +182,22 @@ func From() fyne.CanvasObject {
 			domain.SetText("")
 		},
 		OnSubmit: func() {
-			logrus.Infof("dns query page submitted")
-			response, err := logics.NormalDns(host.Text, domain.Text)
-			if err != nil {
-				logrus.Errorf("dns query error: %v", err)
-				view.SetText(logFormat(host.Text, domain.Text, err.Error()) + view.Text)
-			} else {
-				logrus.Infof("dns query result: %v", response)
-				view.SetText(logFormat(host.Text, domain.Text, strings.Join(response, " ")) + view.Text)
-			}
+			latestParams = fmt.Sprintf("%s%s", host.Text, domain.Text)
+			go func() {
+				logrus.Infof("dns query page submitted")
+				host := host.Text
+				domain := domain.Text
+				response, err := logics.NormalDns(host, domain)
+				if latestParams == fmt.Sprintf("%s%s", host, domain) {
+					if err != nil {
+						logrus.Errorf("dns query error: %v", err)
+						view.SetText(logFormat(host, domain, err.Error()) + view.Text)
+					} else {
+						logrus.Infof("dns query result: %v", response)
+						view.SetText(logFormat(host, domain, strings.Join(response, " ")) + view.Text)
+					}
+				}
+			}()
 		},
 		SubmitText: "检测",
 		CancelText: "清空",

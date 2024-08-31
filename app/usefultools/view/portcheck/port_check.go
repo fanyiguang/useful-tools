@@ -20,9 +20,10 @@ import (
 )
 
 var (
-	logics = controller.NewPortCheck()
-	view   *widget.Entry
-	scroll *container.Scroll
+	logics       = controller.NewPortCheck()
+	view         *widget.Entry
+	scroll       *container.Scroll
+	latestParams string
 )
 
 func Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
@@ -49,7 +50,7 @@ func proView() fyne.CanvasObject {
 	top := viewWidget.MakeCellSize(10, 10)
 	bottom := viewWidget.MakeCellSize(10, 10)
 
-	multi := widget.NewMultiLineEntry()
+	multi := widget.NewMultiLineEntryEx(nil, nil, nil, logics.FormatJson)
 	multi.Wrapping = fyne.TextWrapWord
 	if logics.PreModeInput() != "" {
 		multi.SetText(logics.PreModeInput())
@@ -74,15 +75,21 @@ func proView() fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("pre check port: %s", multi.Text)
-			response, err := logics.ProDial(multi.Text)
-			if err != nil {
-				logrus.Errorf("pro port check error: %v", err)
-				view.SetText(logFormat(gjson.Get(multi.Text, "network").String(), gjson.Get(multi.Text, "local_ip").String(), gjson.Get(multi.Text, "host").String(), gjson.Get(multi.Text, "port").String(), err.Error()) + view.Text)
-			} else {
-				logrus.Infof("pro port check result: %v", response)
-				view.SetText(logFormat(gjson.Get(multi.Text, "network").String(), gjson.Get(multi.Text, "local_ip").String(), gjson.Get(multi.Text, "host").String(), gjson.Get(multi.Text, "port").String(), "OK !") + view.Text)
-			}
+			latestParams = multi.Text
+			go func() {
+				text := multi.Text
+				logrus.Infof("pre check port: %s", text)
+				response, err := logics.ProDial(text)
+				if latestParams == text {
+					if err != nil {
+						logrus.Errorf("pro port check error: %v", err)
+						view.SetText(logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), err.Error()) + view.Text)
+					} else {
+						logrus.Infof("pro port check result: %v", response)
+						view.SetText(logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), "OK !") + view.Text)
+					}
+				}
+			}()
 		},
 	})
 	border := container.NewBorder(nil, box, nil, nil, container.NewVScroll(multi))
@@ -211,15 +218,24 @@ func portCheckFrom() fyne.CanvasObject {
 			port.SetText("")
 		},
 		OnSubmit: func() {
-			logrus.Infof("port check page submitted")
-			response, err := logics.NormalDial(networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text)
-			if err != nil {
-				logrus.Errorf("port check error: %v", err)
-				view.SetText(logFormat(networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text, err.Error()) + view.Text)
-			} else {
-				logrus.Infof("port check result: %v", response)
-				view.SetText(logFormat(networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text, "OK !") + view.Text)
-			}
+			latestParams = fmt.Sprintf("%s%s%s%s", networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text)
+			go func() {
+				logrus.Infof("port check page submitted")
+				selected := networkSelect.Selected
+				face := interfaceSelect.Selected
+				text := host.Text
+				targetPort := port.Text
+				response, err := logics.NormalDial(selected, face, text, targetPort)
+				if latestParams == fmt.Sprintf("%s%s%s%s", selected, face, text, targetPort) {
+					if err != nil {
+						logrus.Errorf("port check error: %v", err)
+						view.SetText(logFormat(selected, face, text, targetPort, err.Error()) + view.Text)
+					} else {
+						logrus.Infof("port check result: %v", response)
+						view.SetText(logFormat(selected, face, text, targetPort, "OK !") + view.Text)
+					}
+				}
+			}()
 		},
 		SubmitText: "检测",
 		CancelText: "清空",

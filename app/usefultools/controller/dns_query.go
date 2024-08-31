@@ -9,6 +9,7 @@ import (
 )
 
 type DnsQuery struct {
+	Base
 	host         string
 	domain       string
 	viewText     string

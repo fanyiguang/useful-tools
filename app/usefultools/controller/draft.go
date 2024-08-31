@@ -6,6 +6,7 @@ import (
 )
 
 type Draft struct {
+	Base
 	leftDocs  linkedhashmap.Map[string, model.Doc]
 	rightDocs linkedhashmap.Map[string, model.Doc]
 }

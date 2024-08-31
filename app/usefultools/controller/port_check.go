@@ -13,6 +13,7 @@ import (
 )
 
 type PortCheck struct {
+	Base
 	network      string
 	iFace        string
 	host         string

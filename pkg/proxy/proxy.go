@@ -198,11 +198,16 @@ func sendRequest(httpClient *http.Client, CheckIpUrls []string, method string, h
 				return
 			}
 
-			response, err := httputil.DumpResponse(resp, !hiddenBody)
+			var response []byte
+			response, err = httputil.DumpResponse(resp, !hiddenBody)
 			if err != nil {
 				wlog.Warm("DumpResponse error: %v", resp.StatusCode)
 				return
 			}
+			if len(response) > 10240 {
+				response = response[:10240]
+			}
+
 			select {
 			case <-time.After(2 * time.Second):
 			case resCh <- string(response):

@@ -4,6 +4,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"useful-tools/app/usefultools/view/aesconversion"
 	"useful-tools/app/usefultools/view/constant"
 	"useful-tools/app/usefultools/view/dnsquery"
 	"useful-tools/app/usefultools/view/draft"
@@ -22,7 +23,7 @@ var (
 	// Tutorials defines the metadata for each tutorial
 	Tutorials = map[string]Page{
 		"草稿搭子": {"草稿搭子",
-			"合理且好用的草稿纸",
+			"不是很正经的草稿纸",
 			draft.Screen,
 			true,
 		},
@@ -41,11 +42,16 @@ var (
 			dnsquery.Screen,
 			true,
 		},
+		"AES转换": {"AES转换",
+			"加密，解密，解密，加密",
+			aesconversion.Screen,
+			true,
+		},
 	}
 
 	// TutorialIndex  defines how our tutorials should be laid out in the index tree
 	TutorialIndex = map[string][]string{
-		"": {"草稿搭子", "代理检测", "端口检测", "DNS查询"},
+		"": {"草稿搭子", "代理检测", "端口检测", "DNS查询", "AES转换"},
 	}
 )
 

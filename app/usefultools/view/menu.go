@@ -13,6 +13,9 @@ func createMenu(a fyne.App, w fyne.Window, setPage func(Page)) *fyne.MainMenu {
 		item.Checked = !item.Checked
 		main.Refresh()
 	}
+
+	file := fyne.NewMenu("文件")
+
 	majorItem := fyne.NewMenuItem("专业模式", nil)
 	majorItem.Action = func() {
 		checkedFn(majorItem, func(item *fyne.MenuItem) {
@@ -77,7 +80,7 @@ func createMenu(a fyne.App, w fyne.Window, setPage func(Page)) *fyne.MainMenu {
 	help := fyne.NewMenu("帮助", feedbackAesItem, helpItem)
 
 	main = fyne.NewMainMenu(
-		mode, view, action, help,
+		file, mode, view, action, help,
 	)
 	return main
 }
