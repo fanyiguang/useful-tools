@@ -3,6 +3,7 @@ package usefultools
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cast"
 	"io"
 	"net/http"
@@ -12,7 +13,6 @@ import (
 	"strings"
 	"time"
 	"useful-tools/common/config"
-	"useful-tools/pkg/wlog"
 )
 
 type UpgradeParam struct {
@@ -20,6 +20,7 @@ type UpgradeParam struct {
 	ProcessName    string `json:"process_name"`
 	ZipPkgName     string `json:"zip_pkg_name"`
 	Version        string `json:"version"`
+	Env            string `json:"env"`
 }
 
 func upgrade() error {
@@ -37,24 +38,27 @@ func upgrade() error {
 	if err != nil {
 		return err
 	}
-	wlog.Info("new version: %v, current version: %v", upgradeParam.Version, config.Version)
+	logrus.Infof("new version: %v, current version: %v", upgradeParam.Version, config.Version)
 	if !isUpgrade(upgradeParam.Version, config.Version) {
 		return nil
 	}
-
+	if upgradeParam.Env != config.Env() {
+		logrus.Infof("upgrade env: %v, current env: %v", upgradeParam.Env, config.Env())
+		return nil
+	}
 	filename := filepath.Join(os.TempDir(), fmt.Sprintf("usefultools-tools_%v.zip", upgradeParam.Version))
 	downloadUrl := buildDownloadUrl(upgradeParam.Version, upgradeParam.PkgDownloadURL, upgradeParam.ZipPkgName)
-	wlog.Info("download url: %v", downloadUrl)
+	logrus.Infof("download url: %v", downloadUrl)
 	err = DownloadPkg(downloadUrl, filename)
 	if err != nil {
 		return err
 	}
-	wlog.Info("download pkg success")
+	logrus.Infof("download pkg success: %v", filename)
 
 	cmd := exec.Command(filepath.Join(config.GetProjectsPath(), "upgrade.exe"), filename, upgradeParam.ProcessName)
 	err = cmd.Run()
 	if err != nil {
-		wlog.Warm("cmd run upgrade error: %v", err)
+		logrus.Warnf("cmd run upgrade error: %v", err)
 	}
 	return nil
 }

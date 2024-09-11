@@ -2,15 +2,22 @@ package usefultools
 
 import (
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"useful-tools/common/config"
+	"useful-tools/common/log"
 	"useful-tools/helper/file"
 	"useful-tools/helper/path"
-	"useful-tools/pkg/wlog"
 )
 
 func initLogic() error {
+	if config.IsTest() {
+		log.Init(filepath.Join(config.GetLogPath(), "log.log"), "debug")
+	} else {
+		log.Init(filepath.Join(config.GetLogPath(), "log.log"), "info")
+	}
+
 	err := initConfig()
 	if err != nil {
 		return err
@@ -18,13 +25,17 @@ func initLogic() error {
 
 	initFile()
 
+	printVersion()
+
+	backGround()
+
 	return nil
 }
 
 func initFile() {
 	_, err := file.CopyFile(filepath.Join(config.GetProjectsPath(), config.ProcessUpgradeName), fmt.Sprintf("./%v", config.ProcessUpgradeName))
 	if err != nil {
-		wlog.Warm("init file error", err)
+		logrus.Warnf("copy file error: %v", err)
 		return
 	}
 	_ = os.Remove(fmt.Sprintf("./%v", config.ProcessUpgradeName))

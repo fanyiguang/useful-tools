@@ -1,8 +1,8 @@
 package usefultools
 
 import (
+	"github.com/sirupsen/logrus"
 	"time"
-	"useful-tools/pkg/wlog"
 )
 
 func backGround() {
@@ -10,13 +10,13 @@ func backGround() {
 }
 
 func upgradeLoop() {
-	ticker := time.NewTicker(10 * time.Minute)
+	ticker := time.NewTicker(2 * time.Minute)
 	for {
 		select {
 		case <-ticker.C:
 			err := upgrade()
 			if err != nil {
-				wlog.Warm("upgrade error: %v", err)
+				logrus.Warnf("upgrade error: %v", err)
 			}
 		}
 	}

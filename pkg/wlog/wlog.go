@@ -1,12 +1,10 @@
 package wlog
 
 import (
+	"github.com/astaxie/beego/utils"
 	"os"
 	"path/filepath"
 	"strings"
-	"useful-tools/common/config"
-
-	"github.com/astaxie/beego/utils"
 
 	"github.com/astaxie/beego/logs"
 	jsoniter "github.com/json-iterator/go"
@@ -27,8 +25,8 @@ type Config struct {
 }
 
 func init() {
-	log = logs.NewLogger()
-	NewLog(config.GetLogPath(), "debug")
+	//log = logs.NewLogger()
+	//NewLog(config.GetLogPath(), "debug")
 }
 
 func NewLog(logPath string, level string) {

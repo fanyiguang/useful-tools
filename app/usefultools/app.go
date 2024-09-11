@@ -13,7 +13,6 @@ func App() (err error) {
 		return err
 	}
 
-	backGround()
 	view.Run(model.RunOptions{
 		Id:       "useful-tools",
 		Version:  config.Version,

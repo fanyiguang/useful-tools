@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/hex"
 	"github.com/pkg/errors"
 	"strings"
 	"useful-tools/helper/net"
@@ -45,4 +46,13 @@ func buildDnsInfo(info []string) net.DnsInfo {
 		Qtype:   "",
 		Timeout: 10,
 	}
+}
+
+func strToByte(s string) ([]byte, error) {
+	hexStr := strings.TrimPrefix(s, "0x")
+	bytes, err := hex.DecodeString(hexStr)
+	if err != nil {
+		return nil, err
+	}
+	return bytes, nil
 }
