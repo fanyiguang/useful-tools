@@ -53,7 +53,7 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 	if logics.ViewText() != "" {
 		view.SetText(logics.ViewText())
 	} else {
-		view.Text = ""
+		view.PlaceHolder = "解析结果"
 	}
 	view.OnChanged = func(s string) {
 		logrus.Infof("aes conversion result: %s", s)

@@ -1,48 +1,48 @@
 package controller
 
 func ProProxyCheckTemplate() string {
-	return "{\r" +
-		"    \"proxy\": {\r" +
-		"        \"type\": \"\",\r" +
-		"        \"host\": \"\",\r" +
-		"        \"port\": \"\",\r" +
-		"        \"username\": \"\",\r" +
-		"        \"password\": \"\"\r" +
-		"    },\r" +
-		"    \"request\": {\r" +
-		"        \"method\": \"GET\",\r" +
-		"        \"urls\": [\r" +
-		"            \"https://www.baidu.com\"\r" +
-		"        ],\r" +
-		"        \"header\": {\r" +
-		"            \"Host\": [\r" +
-		"                \"www.baidu.com\"\r" +
-		"            ],\r" +
-		"            \"Accept-Encoding\": [\r" +
-		"                \"zh-CN,zh\",\r" +
-		"                \"q=0.9,ko\"\r" +
-		"            ]\r" +
-		"        },\r" +
-		"        \"body\": \"\"\r" +
-		"    },\r" +
-		"    \"timeout\": 10\r" +
+	return "{\n" +
+		"    \"proxy\": {\n" +
+		"        \"type\": \"\",\n" +
+		"        \"host\": \"\",\n" +
+		"        \"port\": \"\",\n" +
+		"        \"username\": \"\",\n" +
+		"        \"password\": \"\"\n" +
+		"    },\n" +
+		"    \"request\": {\n" +
+		"        \"method\": \"GET\",\n" +
+		"        \"urls\": [\n" +
+		"            \"https://www.baidu.com\"\n" +
+		"        ],\n" +
+		"        \"header\": {\n" +
+		"            \"Host\": [\n" +
+		"                \"www.baidu.com\"\n" +
+		"            ],\n" +
+		"            \"Accept-Encoding\": [\n" +
+		"                \"zh-CN,zh\",\n" +
+		"                \"q=0.9,ko\"\n" +
+		"            ]\n" +
+		"        },\n" +
+		"        \"body\": \"\"\n" +
+		"    },\n" +
+		"    \"timeout\": 10\n" +
 		"}"
 }
 
 func ProPortCheckTemplate() string {
-	return "{\r" +
-		"    \"local_ip\": \"自动\",\r" +
-		"    \"network\": \"tcp\",\r" +
-		"    \"host\": \"\",\r" +
-		"    \"port\": \"\"\r" +
+	return "{\n" +
+		"    \"local_ip\": \"自动\",\n" +
+		"    \"network\": \"tcp\",\n" +
+		"    \"host\": \"\",\n" +
+		"    \"port\": \"\"\n" +
 		"}"
 }
 
 func ProDnsQueryTemplate() string {
-	return "{\r" +
-		"    \"server\": \"114.114.114.114\",\r" +
-		"    \"domain\": \"www.baidu.com\",\r" +
-		"    \"timeout\": 10,\r" +
-		"    \"qtype\": \"ipv4\"\r" +
+	return "{\n" +
+		"    \"server\": \"114.114.114.114\",\n" +
+		"    \"domain\": \"www.baidu.com\",\n" +
+		"    \"timeout\": 10,\n" +
+		"    \"qtype\": \"ipv4\"\n" +
 		"}"
 }

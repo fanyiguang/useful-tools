@@ -106,7 +106,7 @@ func rightProxyCheck(w fyne.Window) fyne.CanvasObject {
 	if logics.ViewText() != "" {
 		view.SetText(logics.ViewText())
 	} else {
-		view.Text = "检测结果"
+		view.PlaceHolder = "检测结果"
 	}
 	view.OnChanged = func(s string) {
 		logrus.Infof("proxy check result: %s", s)

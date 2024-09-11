@@ -250,5 +250,5 @@ func portCheckFrom() fyne.CanvasObject {
 }
 
 func logFormat(network, i, host, port, msg string) string {
-	return fmt.Sprintf("[%v] %v:%v(%v)[%v] => %v\r\n\r\n", time.Now().Format(`01-02 15:04:05`), host, port, network, i, msg)
+	return fmt.Sprintf("[%v] %v:%v(%v)[%v] => %v\n\n", time.Now().Format(`01-02 15:04:05`), host, port, network, i, msg)
 }
