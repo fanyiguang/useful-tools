@@ -14,7 +14,7 @@
 
 ### 草稿搭子
 ![image](resource/draft-normal.png)  
-是处理和记录临时文本的不二之选，Ctrl+⬆/Ctrl+⬇ 可以进行翻页，Ctrl+=可以增加草稿页面，模拟真实草稿本一般。
+是处理和记录临时文本的不二之选，Ctrl+⬆/Ctrl+⬇ 可以进行翻页，Ctrl+=可以增加草稿页面，Ctrl+j可以将文本json格式化。
 
 ### 代理检测
 #### 普通模式
@@ -33,4 +33,4 @@
 
 ### AES转换
 ![image](resource/aes-normal.png)
-密钥支持十六进制格式和字符串格式
+密钥支持十六进制格式和字符串格式，Ctrl+j可以将解析结果json格式化

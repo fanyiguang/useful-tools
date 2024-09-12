@@ -19,7 +19,7 @@ import (
 
 var (
 	logics       = controller.NewAesConversion()
-	view         *widget.Entry
+	view         *widget.EntryEx
 	latestParams string
 	keyLoadOnce  sync.Once
 )
@@ -47,7 +47,7 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 	top := viewWidget.MakeCellSize(10, 10)
 	bottom := viewWidget.MakeCellSize(10, 10)
 
-	view = widget.NewMultiLineEntry()
+	view = widget.NewMultiLineEntryEx(nil, nil, nil, logics.FormatJson)
 	view.Wrapping = fyne.TextWrapWord
 	view.Scroll = container.ScrollVerticalOnly
 	view.TextStyle = fyne.TextStyle{Bold: true}

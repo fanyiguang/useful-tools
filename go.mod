@@ -1,6 +1,6 @@
 module useful-tools
 
-replace fyne.io/fyne/v2 => D:\study\go-study\src\fyne
+replace fyne.io/fyne/v2 => github.com/fanyiguang/fyne/v2 v2.5.1-0.20240912043413-809ef7abb6f2
 
 go 1.19
 
@@ -8,7 +8,6 @@ require (
 	fyne.io/fyne/v2 v2.5.0
 	github.com/CodyGuo/win v0.0.0-20170113125346-08e6b7208274
 	github.com/astaxie/beego v1.12.3
-	github.com/json-iterator/go v1.1.12
 	github.com/miekg/dns v1.1.47
 	github.com/pkg/errors v0.9.1
 	github.com/sagernet/sing v0.3.0
@@ -21,6 +20,7 @@ require (
 	golang.org/x/net v0.25.0
 	golang.org/x/sys v0.20.0
 	golang.org/x/text v0.16.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
@@ -43,13 +43,10 @@ require (
 	github.com/jsummers/gobmp v0.0.0-20151104160322-e2ba15ffa76e // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
-	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.4.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/rymdport/portal v0.2.2 // indirect
-	github.com/shiena/ansicolor v0.0.0-20151119151921-a422bbe96644 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/srwiley/oksvg v0.0.0-20221011165216-be6e8873101c // indirect
 	github.com/srwiley/rasterx v0.0.0-20220730225603-2ab79fcdd4ef // indirect
@@ -65,7 +62,6 @@ require (
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
-	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )

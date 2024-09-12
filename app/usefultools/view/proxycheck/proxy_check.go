@@ -14,6 +14,7 @@ import (
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
+	"useful-tools/helper/Go"
 	"useful-tools/utils"
 )
 
@@ -236,7 +237,7 @@ func checkFrom() fyne.CanvasObject {
 		},
 		OnSubmit: func() {
 			latestParams = fmt.Sprintf("%v%v%v%v%v%v%v", host.Text, port.Text, username.Text, password.Text, proxyTypeSelect.Selected, urls.Text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
-			go func() {
+			Go.RelativelySafeGo(func() {
 				hostText := host.Text
 				portText := port.Text
 				usernameText := username.Text
@@ -255,7 +256,7 @@ func checkFrom() fyne.CanvasObject {
 					logrus.Infof("proxy check result: %s", response)
 					view.SetText(response)
 				}
-			}()
+			})
 		},
 		SubmitText: "检测",
 		CancelText: "清空",

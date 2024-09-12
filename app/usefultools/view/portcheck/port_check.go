@@ -16,6 +16,7 @@ import (
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
+	"useful-tools/helper/Go"
 	"useful-tools/utils"
 )
 
@@ -219,7 +220,7 @@ func portCheckFrom() fyne.CanvasObject {
 		},
 		OnSubmit: func() {
 			latestParams = fmt.Sprintf("%s%s%s%s", networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text)
-			go func() {
+			Go.RelativelySafeGo(func() {
 				logrus.Infof("port check page submitted")
 				selected := networkSelect.Selected
 				face := interfaceSelect.Selected
@@ -235,7 +236,7 @@ func portCheckFrom() fyne.CanvasObject {
 						view.SetText(logFormat(selected, face, text, targetPort, "OK !") + view.Text)
 					}
 				}
-			}()
+			})
 		},
 		SubmitText: "检测",
 		CancelText: "清空",

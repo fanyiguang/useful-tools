@@ -15,6 +15,7 @@ import (
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
+	"useful-tools/helper/Go"
 )
 
 var (
@@ -74,7 +75,7 @@ func proView() fyne.CanvasObject {
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			latestParams = multi.Text
-			go func() {
+			Go.RelativelySafeGo(func() {
 				text := multi.Text
 				logrus.Infof("pre check dns query: %s", text)
 				response, err := logics.ProQuery(text)
@@ -87,7 +88,7 @@ func proView() fyne.CanvasObject {
 						view.SetText(logFormat(gjson.Get(text, "server").String(), gjson.Get(text, "domain").String(), strings.Join(response, " ")) + text)
 					}
 				}
-			}()
+			})
 		},
 	})
 	border := container.NewBorder(nil, box, nil, nil, multi)
