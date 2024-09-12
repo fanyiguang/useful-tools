@@ -5,15 +5,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
 	"time"
-	"useful-tools/pkg/wlog"
-
-	"github.com/pkg/errors"
 
 	"golang.org/x/crypto/ssh"
 
@@ -130,7 +129,7 @@ func SendHttpRequestByProxy(reqInfo RequestInfo) (res string, err error) {
 		httpClient := &http.Client{Transport: httpTransport, Timeout: time.Duration(reqInfo.Timeout) * time.Second}
 		res, err = sendRequest(httpClient, request.Urls, request.Method, request.Header, request.Body, reqInfo.Timeout, reqInfo.HiddenBody)
 
-	case SHADOWSOCKS:
+	case SHADOWSOCKS, "ss":
 		httpTransport := &http.Transport{
 			DialContext: func(ctx context.Context, network, addr string) (conn net.Conn, e error) {
 				shadowsocks, err := NewShadowsocks(Options{
@@ -152,7 +151,7 @@ func SendHttpRequestByProxy(reqInfo RequestInfo) (res string, err error) {
 		err = errors.New("this proxy type non-existent")
 	}
 
-	err = errors.WithMessagef(err, "proxy info: %v", proxyConfig)
+	err = errors.WithMessagef(err, "proxy info: %v %v", proxyConfig.Host, proxyConfig.Port)
 	return
 }
 
@@ -176,7 +175,7 @@ func sendRequest(httpClient *http.Client, CheckIpUrls []string, method string, h
 			var req *http.Request
 			req, err := http.NewRequest(method, url, strings.NewReader(body))
 			if err != nil {
-				wlog.Warm("http.NewRequest failed: %v", err)
+				logrus.Warnf("http.NewRequest failed: %v", err)
 				return
 			}
 			req.Header = header
@@ -187,22 +186,27 @@ func sendRequest(httpClient *http.Client, CheckIpUrls []string, method string, h
 			}
 			resp, rErr := httpClient.Do(req)
 			if rErr != nil {
-				wlog.Warm("httpClient.Do failed: %v", rErr)
+				logrus.Warnf("httpClient.Do failed: %v", rErr)
 				return
 			}
 			if resp != nil {
 				defer resp.Body.Close()
 			}
 			if resp.StatusCode != http.StatusOK {
-				wlog.Warm("resp.StatusCode: %v not StatusOK", resp.StatusCode)
+				logrus.Warnf("resp.StatusCode: %v not StatusOK", resp.StatusCode)
 				return
 			}
 
-			response, err := httputil.DumpResponse(resp, !hiddenBody)
+			var response []byte
+			response, err = httputil.DumpResponse(resp, !hiddenBody)
 			if err != nil {
-				wlog.Warm("DumpResponse error: %v", resp.StatusCode)
+				logrus.Warnf("DumpResponse error: %v", resp.StatusCode)
 				return
 			}
+			if len(response) > 10240 {
+				response = response[:10240]
+			}
+
 			select {
 			case <-time.After(2 * time.Second):
 			case resCh <- string(response):
