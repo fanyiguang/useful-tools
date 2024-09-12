@@ -14,6 +14,7 @@ import (
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
+	"useful-tools/helper/Go"
 )
 
 var (
@@ -138,7 +139,7 @@ func From() fyne.CanvasObject {
 		},
 		OnSubmit: func() {
 			latestParams = fmt.Sprintf("%s%s%s%s", conversionSelect.Selected, aesKey.Text, aesIV.Text, data.Text)
-			go func() {
+			Go.RelativelySafeGo(func() {
 				logrus.Infof("aes conversion page submitted")
 				key := aesKey.Text
 				iv := aesIV.Text
@@ -154,7 +155,7 @@ func From() fyne.CanvasObject {
 						view.SetText(response)
 					}
 				}
-			}()
+			})
 
 			if fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceSaveAesKey) {
 				fyne.CurrentApp().Preferences().SetString("aes-key", aesKey.Text)

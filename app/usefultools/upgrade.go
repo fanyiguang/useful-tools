@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 	"useful-tools/common/config"
@@ -46,7 +47,7 @@ func upgrade() error {
 		logrus.Infof("upgrade env: %v, current env: %v", upgradeParam.Env, config.Env())
 		return nil
 	}
-	filename := filepath.Join(os.TempDir(), fmt.Sprintf("usefultools-tools_%v.zip", upgradeParam.Version))
+	filename := filepath.Join(os.TempDir(), fmt.Sprintf("useful-tools_%v.zip", upgradeParam.Version))
 	downloadUrl := buildDownloadUrl(upgradeParam.Version, upgradeParam.PkgDownloadURL, upgradeParam.ZipPkgName)
 	logrus.Infof("download url: %v", downloadUrl)
 	err = DownloadPkg(downloadUrl, filename)
@@ -64,7 +65,7 @@ func upgrade() error {
 }
 
 func buildDownloadUrl(version, pkgDownloadURL, zipPkgName string) string {
-	return fmt.Sprintf("%v/v%v/%v", pkgDownloadURL, version, zipPkgName)
+	return fmt.Sprintf("%v/v%v/%v", pkgDownloadURL, version, fmt.Sprintf("%v_%v_%v", runtime.GOOS, runtime.GOARCH, zipPkgName))
 }
 
 func isUpgrade(newVersion string, oldVersion string) bool {

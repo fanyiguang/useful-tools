@@ -3,9 +3,9 @@ package controller
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"time"
-	"useful-tools/pkg/wlog"
 )
 
 type Base struct {
@@ -30,7 +30,7 @@ func (b *Base) FormatJson(data string) string {
 	var buf bytes.Buffer
 	err := json.Indent(&buf, []byte(data), "", "    ")
 	if err != nil {
-		wlog.Warm("json indent error: %v", err)
+		logrus.Warnf("json indent error: %v", err)
 		return data
 	}
 	return buf.String()

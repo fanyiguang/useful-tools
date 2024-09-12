@@ -5,15 +5,14 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
 	"time"
-	"useful-tools/pkg/wlog"
-
-	"github.com/pkg/errors"
 
 	"golang.org/x/crypto/ssh"
 
@@ -176,7 +175,7 @@ func sendRequest(httpClient *http.Client, CheckIpUrls []string, method string, h
 			var req *http.Request
 			req, err := http.NewRequest(method, url, strings.NewReader(body))
 			if err != nil {
-				wlog.Warm("http.NewRequest failed: %v", err)
+				logrus.Warnf("http.NewRequest failed: %v", err)
 				return
 			}
 			req.Header = header
@@ -187,21 +186,21 @@ func sendRequest(httpClient *http.Client, CheckIpUrls []string, method string, h
 			}
 			resp, rErr := httpClient.Do(req)
 			if rErr != nil {
-				wlog.Warm("httpClient.Do failed: %v", rErr)
+				logrus.Warnf("httpClient.Do failed: %v", rErr)
 				return
 			}
 			if resp != nil {
 				defer resp.Body.Close()
 			}
 			if resp.StatusCode != http.StatusOK {
-				wlog.Warm("resp.StatusCode: %v not StatusOK", resp.StatusCode)
+				logrus.Warnf("resp.StatusCode: %v not StatusOK", resp.StatusCode)
 				return
 			}
 
 			var response []byte
 			response, err = httputil.DumpResponse(resp, !hiddenBody)
 			if err != nil {
-				wlog.Warm("DumpResponse error: %v", resp.StatusCode)
+				logrus.Warnf("DumpResponse error: %v", resp.StatusCode)
 				return
 			}
 			if len(response) > 10240 {

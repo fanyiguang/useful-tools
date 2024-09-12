@@ -27,11 +27,20 @@ func Upgrade(file string, processName string) error {
 	if !utils.FileExists(file) {
 		return fmt.Errorf("%v file not exist", file)
 	}
-	upDir = filepath.Join(config.GetProjectsPath(), "usefultools-tools_new")
+	upDir = filepath.Join(config.GetProjectsPath(), "useful-tools_new")
 	if !utils.FileExists(upDir) {
 		_ = os.MkdirAll(upDir, 0666)
 	}
-	defer os.RemoveAll(upDir)
+	defer func() {
+		err := os.RemoveAll(upDir)
+		if err != nil {
+			logrus.Warnf("remove dir error: %v", err)
+		}
+		err = os.Remove(file)
+		if err != nil {
+			logrus.Warnf("remove file error: %v", err)
+		}
+	}()
 	err := Unzip(file, upDir)
 	if err != nil {
 		return err
@@ -63,6 +72,7 @@ func Upgrade(file string, processName string) error {
 	if err != nil {
 		return err
 	}
+	defer os.RemoveAll(bakDir)
 	logrus.Infof("copy run dir: %v", runDir)
 
 	err = CopyDir(upDir, runDir)
@@ -78,7 +88,6 @@ func Upgrade(file string, processName string) error {
 	}
 
 	logrus.Infof("run new process: %v", filepath.Join(runDir, fmt.Sprintf("%v.exe", processName)))
-	_ = os.RemoveAll(bakDir)
 	return nil
 }
 

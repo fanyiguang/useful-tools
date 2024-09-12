@@ -9,7 +9,6 @@ import (
 	"useful-tools/helper/net"
 	"useful-tools/helper/str"
 	"useful-tools/helper/sys"
-	"useful-tools/pkg/wlog"
 )
 
 type PortCheck struct {
@@ -93,7 +92,7 @@ func (p *PortCheck) GetInterfaceList() []string {
 }
 
 func (p *PortCheck) NormalDial(network, iFace, targetIp, targetPort string) (isSuccess bool, err error) {
-	wlog.Info(network, iFace, targetIp, targetPort)
+	logrus.Infof("network: %v, iFace: %v, targetIp: %v, targetPort: %v", network, iFace, targetIp, targetPort)
 	trimInfo := str.TrimStringSpace(network, iFace, targetIp, targetPort)
 	switch trimInfo[0] {
 	case "TCP":

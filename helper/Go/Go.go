@@ -1,13 +1,12 @@
 package Go
 
 import (
-	"fmt"
+	"github.com/sirupsen/logrus"
 	"runtime"
 	"strings"
-	"useful-tools/pkg/wlog"
 )
 
-func Go(fun func()) {
+func RelativelySafeGo(fun func()) {
 	go func(f func()) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -25,7 +24,7 @@ func Recover(err interface{}) {
 	for k, _ := range callers {
 		frame, _ := runtime.CallersFrames(callers[k : k+1]).Next()
 		//frame, _ := runtime.CallersFrames(callers).Next()
-		wlog.Error(fmt.Sprintf("runtime.CallersFrames failed, err: %v file: %v line: %v func: %v", err, frame.File, frame.Line, frame.Function))
+		logrus.Errorf("runtime.CallersFrames failed, err: %v file: %v line: %v func: %v", err, frame.File, frame.Line, frame.Function)
 	}
-	wlog.Error(strings.Repeat("-", 100))
+	logrus.Error(strings.Repeat("-", 100))
 }

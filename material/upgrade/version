@@ -3,5 +3,5 @@
     "process_name": "useful-tools",
     "zip_pkg_name": "useful-tools.zip",
     "version": "2.1.0",
-    "env": "test"
+    "env": "release"
 }

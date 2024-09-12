@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"github.com/sirupsen/logrus"
 	"strings"
 	"useful-tools/pkg/crypto"
 )
@@ -65,6 +66,7 @@ func (a *AesConversion) ConversionList() []string {
 }
 
 func (a *AesConversion) DoConversion(mode, key, iv, content string) (string, error) {
+	logrus.Infof("aes conversion mode: %s, key: %s, iv: %s, content: %s", mode, key, iv, content)
 	switch mode {
 	case "解密":
 		return a.Decode(key, iv, content)
