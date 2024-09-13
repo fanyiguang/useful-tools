@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/astaxie/beego/utils"
 	"github.com/shirou/gopsutil/v3/process"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"path/filepath"
 	"time"
 	"useful-tools/common/config"
-	"useful-tools/pkg/wlog"
 )
 
 var (
@@ -31,12 +31,21 @@ func Upgrade(file string, processName string) error {
 	if !utils.FileExists(upDir) {
 		_ = os.MkdirAll(upDir, 0666)
 	}
-	defer os.RemoveAll(upDir)
+	defer func() {
+		err := os.RemoveAll(upDir)
+		if err != nil {
+			logrus.Warnf("remove dir error: %v", err)
+		}
+		err = os.Remove(file)
+		if err != nil {
+			logrus.Warnf("remove file error: %v", err)
+		}
+	}()
 	err := Unzip(file, upDir)
 	if err != nil {
 		return err
 	}
-	wlog.Info("unzip success")
+	logrus.Infof("unzip dir: %v", upDir)
 	proc, err := process.NewProcess(int32(os.Getppid()))
 	if err != nil {
 		return err
@@ -47,7 +56,8 @@ func Upgrade(file string, processName string) error {
 	if err != nil {
 		return err
 	}
-	wlog.Info("kill process success")
+	logrus.Infof("kill process: %v", proc.Pid)
+	time.Sleep(time.Second)
 
 	runDir, err = readRunDir()
 	if err != nil {
@@ -62,21 +72,22 @@ func Upgrade(file string, processName string) error {
 	if err != nil {
 		return err
 	}
-	wlog.Info("copy run dir success")
+	defer os.RemoveAll(bakDir)
+	logrus.Infof("copy run dir: %v", runDir)
 
 	err = CopyDir(upDir, runDir)
 	if err != nil {
 		resurrection()
 		return err
 	}
-	wlog.Info("copy new dir success")
+	logrus.Infof("copy new dir: %v", upDir)
 
 	err = runProc(filepath.Join(runDir, fmt.Sprintf("%v.exe", processName)))
 	if err != nil {
 		return err
 	}
-	wlog.Info("run new process success")
-	_ = os.RemoveAll(bakDir)
+
+	logrus.Infof("run new process: %v", filepath.Join(runDir, fmt.Sprintf("%v.exe", processName)))
 	return nil
 }
 
@@ -92,7 +103,7 @@ func runProc(filename string) error {
 func resurrection() {
 	err := CopyDir(bakDir, runDir)
 	if err != nil {
-		wlog.Warm("resurrection copy dir error: %v", err)
+		logrus.Warnf("resurrection copy dir error: %v", err)
 	}
 	_ = os.RemoveAll(bakDir)
 }
