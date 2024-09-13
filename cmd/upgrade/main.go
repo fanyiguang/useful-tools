@@ -1,17 +1,23 @@
 package main
 
 import (
+	"github.com/sirupsen/logrus"
 	"os"
+	"path/filepath"
 	"useful-tools/app/upgrade"
-	"useful-tools/pkg/wlog"
+	"useful-tools/common/config"
+	"useful-tools/common/log"
 )
 
 func main() {
 	if len(os.Args) < 3 {
 		os.Exit(1)
 	}
+
+	log.Init(filepath.Join(config.GetLogPath(), "log.log"), "info")
+
 	err := upgrade.Upgrade(os.Args[1], os.Args[2])
 	if err != nil {
-		wlog.Warm("upgrade error: %v", err)
+		logrus.Warnf("upgrade error: %v", err)
 	}
 }
