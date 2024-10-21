@@ -24,19 +24,19 @@ func init() {
 	SetSettingPath(filepath.Join(GetProjectsPath(), "setting"))
 	SetConfigPath(filepath.Join(GetProjectsPath(), "config"))
 	if !utils.FileExists(GetTempPath()) {
-		_ = os.MkdirAll(GetTempPath(), 0666)
+		_ = os.MkdirAll(GetTempPath(), 0766)
 	}
 
 	if !utils.FileExists(GetLogPath()) {
-		_ = os.MkdirAll(GetLogPath(), 0666)
+		_ = os.MkdirAll(GetLogPath(), 0766)
 	}
 
 	if !utils.FileExists(GetSettingPath()) {
-		_ = os.MkdirAll(GetSettingPath(), 0666)
+		_ = os.MkdirAll(GetSettingPath(), 0766)
 	}
 
 	if !utils.FileExists(GetConfigPath()) {
-		_ = os.MkdirAll(GetConfigPath(), 0666)
+		_ = os.MkdirAll(GetConfigPath(), 0766)
 	}
 }
 

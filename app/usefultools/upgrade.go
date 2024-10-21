@@ -56,7 +56,7 @@ func upgrade() error {
 	}
 	logrus.Infof("download pkg success: %v", filename)
 
-	cmd := exec.Command(filepath.Join(config.GetProjectsPath(), "upgrade.exe"), filename, upgradeParam.ProcessName)
+	cmd := exec.Command(filepath.Join(config.GetProjectsPath(), config.ProcessUpgradeName), filename, upgradeParam.ProcessName)
 	err = cmd.Run()
 	if err != nil {
 		logrus.Warnf("cmd run upgrade error: %v", err)

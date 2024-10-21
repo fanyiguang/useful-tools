@@ -1,9 +1,9 @@
 package usefultools
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"useful-tools/common/config"
 	"useful-tools/common/log"
@@ -33,12 +33,21 @@ func initLogic() error {
 }
 
 func initFile() {
-	_, err := file.CopyFile(filepath.Join(config.GetProjectsPath(), config.ProcessUpgradeName), fmt.Sprintf("./%v", config.ProcessUpgradeName))
+	currentPath, err := path.Path()
+	if err != nil {
+		logrus.Warnf("path error: %v", err)
+	}
+	srcFilePath := filepath.Join(filepath.Dir(currentPath), config.ProcessUpgradeName)
+	_, err = file.CopyFile(filepath.Join(config.GetProjectsPath(), config.ProcessUpgradeName), srcFilePath)
 	if err != nil {
 		logrus.Warnf("copy file error: %v", err)
 		return
 	}
-	_ = os.Remove(fmt.Sprintf("./%v", config.ProcessUpgradeName))
+	err = exec.Command("chmod", "+x", srcFilePath).Run()
+	if err != nil {
+		logrus.Warnf("chmod error: %v", err)
+	}
+	_ = os.Remove(srcFilePath)
 }
 
 func initConfig() error {

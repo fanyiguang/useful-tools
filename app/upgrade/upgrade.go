@@ -29,7 +29,7 @@ func Upgrade(file string, processName string) error {
 	}
 	upDir = filepath.Join(config.GetProjectsPath(), "useful-tools_new")
 	if !utils.FileExists(upDir) {
-		_ = os.MkdirAll(upDir, 0666)
+		_ = os.MkdirAll(upDir, 0766)
 	}
 	defer func() {
 		err := os.RemoveAll(upDir)
