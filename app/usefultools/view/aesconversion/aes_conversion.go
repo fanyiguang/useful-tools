@@ -89,7 +89,7 @@ func From() fyne.CanvasObject {
 		conversionSelect.SetSelected("解密")
 	}
 
-	aesKey := widget.NewEntry()
+	aesKey := widget.NewPasswordEntry()
 	aesKey.SetPlaceHolder("AES KEY")
 	aesKey.SetText(logics.AesKey())
 	aesKey.OnChanged = func(s string) {
@@ -98,7 +98,7 @@ func From() fyne.CanvasObject {
 		aesKey.SetText(s)
 	}
 
-	aesIV := widget.NewEntry()
+	aesIV := widget.NewPasswordEntry()
 	aesIV.SetPlaceHolder("AES IV")
 	aesIV.SetText(logics.AesIv())
 	aesIV.OnChanged = func(s string) {

@@ -22,9 +22,9 @@ build-upgrade:
 	-ldflags "-H windowsgui" \
 	-o ./bin/windows/amd64/$(UPGARDENAME).exe ./cmd/upgrade
 
-# mac arm64 -----------------------------------------------------------
+# package mac arm64 -----------------------------------------------------------
 
-build-mac-arm64: proc-mac-arm64 build-upgrade-mac-arm64 package-mac-arm64
+build-mac-arm64: proc-mac-arm64 build-upgrade-mac-arm64 package-mac-arm64 copy-upgrade
 proc-mac-arm64:
 	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build \
 	--trimpath \
@@ -40,12 +40,29 @@ build-upgrade-mac-arm64:
 package-mac-arm64:
 	fyne package -os darwin -release -icon ./resource/icon.png --exe ./bin/darwin/release/arm64/$(APPNAME) --name useful-tools
 
-# cross compile -------------------------------------------------------
+copy-upgrade:
+	cp ./bin/darwin/arm64/$(UPGARDENAME) ./useful-tools.app/Contents/MacOS/
+
+# cross mac amd64 -------------------------------------------------------
 
 cross-mac-arm64-tool:
-	fyne-cross darwin -arch=arm64 -icon=./resource/icon.png -name=useful-tools -app-id=com.useful-tools.app  ./cmd/usefultools
+	fyne-cross darwin -arch=amd64 -icon=./resource/icon.png -name=useful-tools -app-id=com.useful-tools.app  ./cmd/usefultools
+
+# cross windows amd64 -------------------------------------------------------
+
+build-windows-amd64: cross-windows-amd64-tool mv-tool cross-windows-amd64-upgrade mv-upgrade
 
 cross-windows-amd64-tool:
 	fyne-cross windows -arch=amd64 -icon ./resource/icon.png -name $(APPNAME).exe -app-id com.useful-tools.app -app-build 1 -app-version 2.0.0 ./cmd/usefultools
+
 cross-windows-amd64-upgrade:
 	fyne-cross windows -arch=amd64 -icon ./resource/icon.png -app-id com.useful-tools.app -name $(UPGARDENAME).exe ./cmd/upgrade
+
+mv-tool:
+	mv ./fyne-cross/bin/windows-amd64/$(APPNAME).exe ./bin/windows/amd64/
+
+mv-upgrade:
+	mv ./fyne-cross/bin/windows-amd64/$(UPGARDENAME).exe ./bin/windows/amd64
+
+zip-windows-amd64:
+	zip useful-tools.zip -r ./bin/windows/amd64/$(APPNAME).exe ./bin/windows/amd64/$(UPGARDENAME).exe

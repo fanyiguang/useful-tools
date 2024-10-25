@@ -15,7 +15,6 @@ import (
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
 	"useful-tools/helper/Go"
-	"useful-tools/utils"
 )
 
 var (
@@ -161,7 +160,7 @@ func checkFrom() fyne.CanvasObject {
 		if s == "" {
 			return nil
 		}
-		if ip := utils.FindIP(strings.TrimSpace(s)); ip != nil {
+		if strings.Contains(strings.TrimSpace(s), ".") {
 			return nil
 		} else {
 			return errors.New("地址格式错误！")

@@ -108,7 +108,7 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 	if logics.ViewText() != "" {
 		view.SetText(logics.ViewText())
 	} else {
-		view.Text = ""
+		view.Text = "查询结果"
 	}
 	view.OnChanged = func(s string) {
 		logrus.Infof("dns query result: %s", s)
