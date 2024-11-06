@@ -82,6 +82,12 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 }
 
 func From() fyne.CanvasObject {
+	var (
+		keyNames []string
+		keyList  map[string]string
+		ivList   map[string]string
+	)
+
 	conversionSelect := widget.NewSelect(logics.ConversionList(), func(s string) {})
 	if logics.ConversionType() != "" {
 		conversionSelect.SetSelected(logics.ConversionType())
@@ -107,6 +113,19 @@ func From() fyne.CanvasObject {
 		aesIV.SetText(s)
 	}
 
+	keyNames, keyList, ivList = getKeyGroupList()
+	keyGroupSelect := widget.NewSelectEntry(keyNames)
+	keyGroupSelect.OnChanged = func(s string) {
+		logrus.Infof("aes conversion key group: %s", s)
+		if keyList[s] != "" {
+			aesKey.SetText(keyList[s])
+			aesIV.SetText(ivList[s])
+		}
+	}
+	if len(keyNames) > 0 {
+		keyGroupSelect.SetText(keyNames[0])
+	}
+
 	data := widget.NewMultiLineEntry()
 	data.Wrapping = fyne.TextWrapWord
 	data.SetPlaceHolder("参数")
@@ -125,17 +144,18 @@ func From() fyne.CanvasObject {
 		return nil
 	})
 
-	form := &widget.StyleForm{
+	var form *widget.StyleForm
+	form = &widget.StyleForm{
 		Items: []*widget.StyleFormItem{
 			{Text: "转换类型:", Widget: conversionSelect, HintText: "必选"},
+			{Text: "密钥名称:", Widget: keyGroupSelect, HintText: "选填"},
 			{Text: "AES KEY:", Widget: aesKey, HintText: "必填"},
 			{Text: "AES IV:", Widget: aesIV, HintText: "必填"},
 			{Text: "参数:", Widget: data, HintText: "必填"},
 		},
 		OnCancel: func() {
 			logrus.Infof("aes conversion page cancelled")
-			aesKey.SetText("")
-			aesIV.SetText("")
+			data.SetText("")
 		},
 		OnSubmit: func() {
 			latestParams = fmt.Sprintf("%s%s%s%s", conversionSelect.Selected, aesKey.Text, aesIV.Text, data.Text)
@@ -157,9 +177,10 @@ func From() fyne.CanvasObject {
 				}
 			})
 
-			if fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceSaveAesKey) {
-				fyne.CurrentApp().Preferences().SetString("aes-key", aesKey.Text)
-				fyne.CurrentApp().Preferences().SetString("aes-iv", aesIV.Text)
+			if setKeyGroupList(keyGroupSelect.Text, aesKey.Text, aesIV.Text) {
+				keyNames, keyList, ivList = getKeyGroupList()
+				keyGroupSelect.SetOptions(keyNames)
+				keyGroupSelect.Refresh()
 			}
 		},
 		SubmitText: conversionSelect.Selected,

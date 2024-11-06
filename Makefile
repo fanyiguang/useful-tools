@@ -45,7 +45,7 @@ copy-upgrade:
 
 # cross mac amd64 -------------------------------------------------------
 
-cross-mac-arm64-tool:
+cross-mac-amd64-tool:
 	fyne-cross darwin -arch=amd64 -icon=./resource/icon.png -name=useful-tools -app-id=com.useful-tools.app  ./cmd/usefultools
 
 # cross windows amd64 -------------------------------------------------------
