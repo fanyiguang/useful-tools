@@ -38,6 +38,7 @@ build-upgrade-mac-arm64:
 	-o ./bin/darwin/arm64/$(UPGARDENAME) ./cmd/upgrade
 
 package-mac-arm64:
+	rm -rf ./useful-tools.app
 	fyne package -os darwin -release -icon ./resource/icon.png --exe ./bin/darwin/release/arm64/$(APPNAME) --name useful-tools
 
 copy-upgrade:

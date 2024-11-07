@@ -4,12 +4,14 @@ import (
 	"errors"
 	"github.com/sirupsen/logrus"
 	"strings"
+	"useful-tools/app/usefultools/adapter"
 	"useful-tools/pkg/crypto"
 )
 
+var _ adapter.Controller = (*AesConversion)(nil)
+
 type AesConversion struct {
 	Base
-	conversion     string
 	viewText       string
 	conversionType string
 	aesKey         string
@@ -122,4 +124,12 @@ func (a *AesConversion) buildSecretKey(key string) (new []byte, err error) {
 	}
 	new = []byte(key)
 	return
+}
+
+func (a *AesConversion) ClearCache() {
+	a.aesIv = ""
+	a.aesKey = ""
+	a.conversionType = ""
+	a.viewText = ""
+	a.data = ""
 }

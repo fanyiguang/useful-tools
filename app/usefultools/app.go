@@ -13,11 +13,11 @@ func App() (err error) {
 		return err
 	}
 
-	view.Run(model.RunOptions{
-		Id:       "useful-tools",
-		Version:  config.Version,
-		AppTitle: titleFormat(),
+	window := view.NewWindow(model.RunOptions{
+		Id:      "useful-tools",
+		Version: config.Version,
 	})
+	window.Run()
 	return
 }
 

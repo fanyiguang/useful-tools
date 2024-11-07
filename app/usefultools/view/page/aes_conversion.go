@@ -1,4 +1,4 @@
-package aesconversion
+package page
 
 import (
 	"errors"
@@ -10,55 +10,68 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/sirupsen/logrus"
 	"strings"
-	"sync"
+	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/preferencekey"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
 	"useful-tools/helper/Go"
 )
 
-var (
-	logics       = controller.NewAesConversion()
+var _ adapter.Page = (*AesConversion)(nil)
+
+type AesConversion struct {
+	BasePage
+	logics       *controller.AesConversion
 	view         *widget.EntryEx
 	latestParams string
-	keyLoadOnce  sync.Once
-)
-
-func Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
-	return container.NewHSplit(leftScreen(mode), rightScreen(w))
+	aesKeyList   *preferencekey.AesListKey
 }
 
-func leftScreen(mode constant.ViewMode) fyne.CanvasObject {
+func NewAesConversion() *AesConversion {
+	return &AesConversion{
+		BasePage: BasePage{
+			Title:      "AES转换",
+			Intro:      "加密，解密，解密，加密",
+			SupportWeb: true,
+		},
+		logics:     controller.NewAesConversion(),
+		aesKeyList: preferencekey.NewAesKeyList(),
+	}
+
+}
+
+func (a *AesConversion) Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
+	return container.NewHSplit(a.leftScreen(mode), a.rightScreen(w))
+}
+
+func (a *AesConversion) leftScreen(mode constant.ViewMode) fyne.CanvasObject {
 	logrus.Infof("aes conversion mode: %d", mode)
 	right := viewWidget.MakeCellSize(10, 10)
 	left := viewWidget.MakeCellSize(10, 10)
 	top := viewWidget.MakeCellSize(10, 10)
 	bottom := viewWidget.MakeCellSize(10, 10)
-	keyLoadOnce.Do(func() {
-		logics.SetAesKey(fyne.CurrentApp().Preferences().String("aes-key"))
-		logics.SetAesIv(fyne.CurrentApp().Preferences().String("aes-iv"))
-	})
-	return container.NewBorder(top, bottom, left, right, From())
+	return container.NewBorder(top, bottom, left, right, a.from())
 }
 
-func rightScreen(w fyne.Window) fyne.CanvasObject {
+func (a *AesConversion) rightScreen(w fyne.Window) fyne.CanvasObject {
 	right := viewWidget.MakeCellSize(10, 10)
 	left := viewWidget.MakeCellSize(10, 10)
 	top := viewWidget.MakeCellSize(10, 10)
 	bottom := viewWidget.MakeCellSize(10, 10)
 
-	view = widget.NewMultiLineEntryEx(nil, nil, nil, logics.FormatJson)
-	view.Wrapping = fyne.TextWrapWord
-	view.Scroll = container.ScrollVerticalOnly
-	view.TextStyle = fyne.TextStyle{Bold: true}
-	if logics.ViewText() != "" {
-		view.SetText(logics.ViewText())
+	a.view = widget.NewMultiLineEntryEx(nil, nil, nil, a.logics.FormatJson)
+	a.view.Wrapping = fyne.TextWrapWord
+	a.view.Scroll = container.ScrollVerticalOnly
+	a.view.TextStyle = fyne.TextStyle{Bold: true}
+	if a.logics.ViewText() != "" {
+		a.view.SetText(a.logics.ViewText())
 	} else {
-		view.PlaceHolder = "解析结果"
+		a.view.PlaceHolder = "解析结果"
 	}
-	view.OnChanged = func(s string) {
+	a.view.OnChanged = func(s string) {
 		logrus.Infof("aes conversion result: %s", s)
-		logics.SetViewText(s)
+		a.logics.SetViewText(s)
 	}
 
 	box := container.NewGridWithColumns(2, &widget.Button{
@@ -66,54 +79,54 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("aes conversion view check clear: %s", view.Text)
-			view.SetText("")
+			logrus.Infof("aes conversion view check clear: %s", a.view.Text)
+			a.view.SetText("")
 		},
 	}, &widget.Button{
 		Text:       "复制",
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("aes conversion view check copy: %s", view.Text)
-			w.Clipboard().SetContent(strings.TrimSpace(view.Text))
+			logrus.Infof("aes conversion view check copy: %s", a.view.Text)
+			w.Clipboard().SetContent(strings.TrimSpace(a.view.Text))
 		},
 	})
-	return container.NewBorder(top, bottom, left, right, container.NewBorder(nil, box, nil, nil, view))
+	return container.NewBorder(top, bottom, left, right, container.NewBorder(nil, box, nil, nil, a.view))
 }
 
-func From() fyne.CanvasObject {
+func (a *AesConversion) from() fyne.CanvasObject {
 	var (
 		keyNames []string
 		keyList  map[string]string
 		ivList   map[string]string
 	)
 
-	conversionSelect := widget.NewSelect(logics.ConversionList(), func(s string) {})
-	if logics.ConversionType() != "" {
-		conversionSelect.SetSelected(logics.ConversionType())
+	conversionSelect := widget.NewSelect(a.logics.ConversionList(), func(s string) {})
+	if a.logics.ConversionType() != "" {
+		conversionSelect.SetSelected(a.logics.ConversionType())
 	} else {
 		conversionSelect.SetSelected("解密")
 	}
 
 	aesKey := widget.NewPasswordEntry()
 	aesKey.SetPlaceHolder("AES KEY")
-	aesKey.SetText(logics.AesKey())
+	aesKey.SetText(a.logics.AesKey())
 	aesKey.OnChanged = func(s string) {
 		logrus.Infof("aes conversion aes key: %s", s)
-		logics.SetAesKey(s)
-		aesKey.SetText(s)
+		a.logics.SetAesKey(s)
+		//aesKey.SetText(s)
 	}
 
 	aesIV := widget.NewPasswordEntry()
 	aesIV.SetPlaceHolder("AES IV")
-	aesIV.SetText(logics.AesIv())
+	aesIV.SetText(a.logics.AesIv())
 	aesIV.OnChanged = func(s string) {
 		logrus.Infof("aes conversion aesIV: %s", s)
-		logics.SetAesIv(s)
-		aesIV.SetText(s)
+		a.logics.SetAesIv(s)
+		//aesIV.SetText(s)
 	}
 
-	keyNames, keyList, ivList = getKeyGroupList()
+	keyNames, keyList, ivList = a.aesKeyList.GetValue()
 	keyGroupSelect := widget.NewSelectEntry(keyNames)
 	keyGroupSelect.OnChanged = func(s string) {
 		logrus.Infof("aes conversion key group: %s", s)
@@ -124,16 +137,18 @@ func From() fyne.CanvasObject {
 	}
 	if len(keyNames) > 0 {
 		keyGroupSelect.SetText(keyNames[0])
+	} else {
+		keyGroupSelect.SetPlaceHolder("可以设置密钥名称后保存")
 	}
 
 	data := widget.NewMultiLineEntry()
 	data.Wrapping = fyne.TextWrapWord
 	data.SetPlaceHolder("参数")
-	data.SetText(logics.Data())
+	data.SetText(a.logics.Data())
 	data.OnChanged = func(s string) {
 		logrus.Infof("aes conversion data: %s", s)
-		logics.SetData(s)
-		data.SetText(s)
+		a.logics.SetData(s)
+		//data.SetText(s)
 	}
 	data.SetMinRowsVisible(10)
 	data.Validator = validation.NewAllStrings(func(s string) error {
@@ -158,27 +173,27 @@ func From() fyne.CanvasObject {
 			data.SetText("")
 		},
 		OnSubmit: func() {
-			latestParams = fmt.Sprintf("%s%s%s%s", conversionSelect.Selected, aesKey.Text, aesIV.Text, data.Text)
+			a.latestParams = fmt.Sprintf("%s%s%s%s", conversionSelect.Selected, aesKey.Text, aesIV.Text, data.Text)
 			Go.RelativelySafeGo(func() {
 				logrus.Infof("aes conversion page submitted")
 				key := aesKey.Text
 				iv := aesIV.Text
 				aesData := data.Text
 				mode := conversionSelect.Selected
-				response, err := logics.DoConversion(mode, key, iv, aesData)
-				if latestParams == fmt.Sprintf("%s%s%s%s", conversionSelect.Selected, aesKey.Text, aesIV.Text, data.Text) { //防止重复提交
+				response, err := a.logics.DoConversion(mode, key, iv, aesData)
+				if a.latestParams == fmt.Sprintf("%s%s%s%s", conversionSelect.Selected, aesKey.Text, aesIV.Text, data.Text) { //防止重复提交
 					if err != nil {
 						logrus.Errorf("aes conversion error: %v", err)
-						view.SetText(err.Error())
+						a.view.SetText(err.Error())
 					} else {
 						logrus.Infof("aes conversion result: %v", response)
-						view.SetText(response)
+						a.view.SetText(response)
 					}
 				}
 			})
 
-			if setKeyGroupList(keyGroupSelect.Text, aesKey.Text, aesIV.Text) {
-				keyNames, keyList, ivList = getKeyGroupList()
+			if a.aesKeyList.SetValue(keyGroupSelect.Text, aesKey.Text, aesIV.Text) {
+				keyNames, keyList, ivList = a.aesKeyList.GetValue()
 				keyGroupSelect.SetOptions(keyNames)
 				keyGroupSelect.Refresh()
 			}
@@ -194,9 +209,14 @@ func From() fyne.CanvasObject {
 	}
 	conversionSelect.OnChanged = func(s string) {
 		logrus.Infof("aes conversion mode: %s", s)
-		logics.SetConversionType(s)
+		a.logics.SetConversionType(s)
 		form.SubmitText = conversionSelect.Selected
 		form.Refresh()
 	}
 	return form
+}
+
+func (a *AesConversion) ClearCache() {
+	a.logics.ClearCache()
+	a.aesKeyList.Clear()
 }

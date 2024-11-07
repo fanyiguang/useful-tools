@@ -2,8 +2,11 @@ package controller
 
 import (
 	"github.com/sagernet/sing/common/x/linkedhashmap"
+	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/model"
 )
+
+var _ adapter.Controller = (*Draft)(nil)
 
 type Draft struct {
 	Base
@@ -83,4 +86,13 @@ func (d *Draft) FindLeftPrevDocsIndex(title string) (model.Doc, int) {
 		}
 	}
 	return model.Doc{}, -1
+}
+
+func (d *Draft) ClearCache() {
+	for _, val := range d.leftDocs.Values() {
+		val.Content = ""
+	}
+	for _, val := range d.rightDocs.Values() {
+		val.Content = ""
+	}
 }

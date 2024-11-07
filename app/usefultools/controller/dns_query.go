@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	sysNet "net"
 	"strings"
+	"useful-tools/app/usefultools/adapter"
 	"useful-tools/helper/net"
 	"useful-tools/helper/str"
 )
+
+var _ adapter.Controller = (*DnsQuery)(nil)
 
 type DnsQuery struct {
 	Base
@@ -77,4 +80,11 @@ func (d *DnsQuery) ProQuery(content string) (ips []string, err error) {
 func (d *DnsQuery) parserConvenientModeContent(data string) (dnsInfo net.DnsInfo, err error) {
 	err = json.Unmarshal([]byte(data), &dnsInfo)
 	return dnsInfo, err
+}
+
+func (d *DnsQuery) ClearCache() {
+	d.host = ""
+	d.domain = ""
+	d.viewText = ""
+	d.preModeInput = ""
 }

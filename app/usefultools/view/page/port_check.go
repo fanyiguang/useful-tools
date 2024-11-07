@@ -1,4 +1,4 @@
-package portcheck
+package page
 
 import (
 	"fmt"
@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
@@ -20,47 +21,61 @@ import (
 	"useful-tools/utils"
 )
 
-var (
-	logics       = controller.NewPortCheck()
+var _ adapter.Page = (*PortCheck)(nil)
+
+type PortCheck struct {
+	BasePage
+	logics       *controller.PortCheck
 	view         *widget.Entry
 	scroll       *container.Scroll
 	latestParams string
-)
-
-func Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
-	return container.NewHSplit(leftScreen(mode), rightScreen(w))
 }
 
-func leftScreen(mode constant.ViewMode) fyne.CanvasObject {
+func NewPortCheck() *PortCheck {
+	return &PortCheck{
+		BasePage: BasePage{
+			Title:      "端口检测",
+			Intro:      "TCP/UDP端口检测",
+			SupportWeb: true,
+		},
+		logics: controller.NewPortCheck(),
+	}
+}
+
+func (p *PortCheck) Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
+	return container.NewHSplit(p.leftScreen(mode), p.rightScreen(w))
+}
+
+func (p *PortCheck) leftScreen(mode constant.ViewMode) fyne.CanvasObject {
 	logrus.Infof("port check mode: %d", mode)
 	switch mode {
 	case constant.ViewModePro:
-		return proView()
+		return p.proView()
 	default:
 		right := viewWidget.MakeCellSize(10, 10)
 		left := viewWidget.MakeCellSize(10, 10)
 		top := viewWidget.MakeCellSize(10, 10)
 		bottom := viewWidget.MakeCellSize(10, 10)
-		return container.NewBorder(top, bottom, left, right, portCheckFrom())
+		return container.NewBorder(top, bottom, left, right, p.portCheckFrom())
 	}
 }
 
-func proView() fyne.CanvasObject {
+func (p *PortCheck) proView() fyne.CanvasObject {
 	right := viewWidget.MakeCellSize(10, 10)
 	left := viewWidget.MakeCellSize(10, 10)
 	top := viewWidget.MakeCellSize(10, 10)
 	bottom := viewWidget.MakeCellSize(10, 10)
 
-	multi := widget.NewMultiLineEntryEx(nil, nil, nil, logics.FormatJson)
+	multi := widget.NewMultiLineEntryEx(nil, nil, nil, p.logics.FormatJson)
 	multi.Wrapping = fyne.TextWrapWord
-	if logics.PreModeInput() != "" {
-		multi.SetText(logics.PreModeInput())
+	if p.logics.PreModeInput() != "" {
+		multi.SetText(p.logics.PreModeInput())
 	} else {
-		multi.SetText(logics.PreTemplate())
+		multi.SetText(p.logics.PreTemplate())
 	}
 	multi.OnChanged = func(s string) {
 		logrus.Infof("port: %s", s)
-		logics.SetPreModeInput(s)
+		p.logics.SetPreModeInput(s)
 	}
 
 	box := container.NewGridWithColumns(2, &widget.Button{
@@ -76,18 +91,18 @@ func proView() fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			latestParams = multi.Text
+			p.latestParams = multi.Text
 			go func() {
 				text := multi.Text
 				logrus.Infof("pre check port: %s", text)
-				response, err := logics.ProDial(text)
-				if latestParams == text {
+				response, err := p.logics.ProDial(text)
+				if p.latestParams == text {
 					if err != nil {
 						logrus.Errorf("pro port check error: %v", err)
-						view.SetText(logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), err.Error()) + view.Text)
+						p.view.SetText(p.logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), err.Error()) + p.view.Text)
 					} else {
 						logrus.Infof("pro port check result: %v", response)
-						view.SetText(logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), "OK !") + view.Text)
+						p.view.SetText(p.logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), "OK !") + p.view.Text)
 					}
 				}
 			}()
@@ -97,24 +112,24 @@ func proView() fyne.CanvasObject {
 	return container.NewBorder(top, bottom, left, right, border)
 }
 
-func rightScreen(w fyne.Window) fyne.CanvasObject {
+func (p *PortCheck) rightScreen(w fyne.Window) fyne.CanvasObject {
 	right := viewWidget.MakeCellSize(10, 10)
 	left := viewWidget.MakeCellSize(10, 10)
 	top := viewWidget.MakeCellSize(10, 10)
 	bottom := viewWidget.MakeCellSize(10, 10)
 
-	view = widget.NewMultiLineEntry()
-	view.Wrapping = fyne.TextWrapWord
-	view.Scroll = container.ScrollVerticalOnly
-	view.TextStyle = fyne.TextStyle{Bold: true}
-	if logics.ViewText() != "" {
-		view.SetText(logics.ViewText())
+	p.view = widget.NewMultiLineEntry()
+	p.view.Wrapping = fyne.TextWrapWord
+	p.view.Scroll = container.ScrollVerticalOnly
+	p.view.TextStyle = fyne.TextStyle{Bold: true}
+	if p.logics.ViewText() != "" {
+		p.view.SetText(p.logics.ViewText())
 	} else {
-		view.Text = "检测结果"
+		p.view.Text = "检测结果"
 	}
-	view.OnChanged = func(s string) {
+	p.view.OnChanged = func(s string) {
 		logrus.Infof("port check result: %s", s)
-		logics.SetViewText(s)
+		p.logics.SetViewText(s)
 	}
 	//view.Disable()
 
@@ -123,50 +138,50 @@ func rightScreen(w fyne.Window) fyne.CanvasObject {
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("port check view check clear: %s", view.Text)
-			view.SetText("")
+			logrus.Infof("port check view check clear: %s", p.view.Text)
+			p.view.SetText("")
 		},
 	}, &widget.Button{
 		Text:       "复制",
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
-			logrus.Infof("port check view check copy: %s", view.Text)
-			w.Clipboard().SetContent(strings.TrimSpace(view.Text))
+			logrus.Infof("port check view check copy: %s", p.view.Text)
+			w.Clipboard().SetContent(strings.TrimSpace(p.view.Text))
 		},
 	})
-	scroll = container.NewVScroll(view)
-	border := container.NewBorder(nil, box, nil, nil, scroll)
+	p.scroll = container.NewVScroll(p.view)
+	border := container.NewBorder(nil, box, nil, nil, p.scroll)
 	return container.NewBorder(top, bottom, left, right, border)
 }
 
-func portCheckFrom() fyne.CanvasObject {
-	networkSelect := widget.NewSelect(logics.NetworkList(), func(s string) {
+func (p *PortCheck) portCheckFrom() fyne.CanvasObject {
+	networkSelect := widget.NewSelect(p.logics.NetworkList(), func(s string) {
 		logrus.Infof("port check scheme: %s", s)
-		logics.SetNetwork(s)
+		p.logics.SetNetwork(s)
 	})
-	if logics.Network() != "" {
-		networkSelect.SetSelected(logics.Network())
+	if p.logics.Network() != "" {
+		networkSelect.SetSelected(p.logics.Network())
 	} else {
 		networkSelect.SetSelected("TCP")
 	}
 
-	interfaceSelect := widget.NewSelect(logics.GetInterfaceList(), func(s string) {
+	interfaceSelect := widget.NewSelect(p.logics.GetInterfaceList(), func(s string) {
 		logrus.Infof("port check interface: %s", s)
-		logics.SetIFace(s)
+		p.logics.SetIFace(s)
 	})
-	if logics.IFace() != "" {
-		interfaceSelect.SetSelected(logics.IFace())
+	if p.logics.IFace() != "" {
+		interfaceSelect.SetSelected(p.logics.IFace())
 	} else {
 		interfaceSelect.SetSelected("自动")
 	}
 
 	host := widget.NewEntry()
 	host.SetPlaceHolder("目标地址")
-	host.SetText(logics.Host())
+	host.SetText(p.logics.Host())
 	host.OnChanged = func(s string) {
 		logrus.Infof("port check host: %s", s)
-		logics.SetHost(s)
+		p.logics.SetHost(s)
 		host.SetText(s)
 	}
 	host.Validator = validation.NewAllStrings(func(s string) error {
@@ -183,10 +198,10 @@ func portCheckFrom() fyne.CanvasObject {
 
 	port := widget.NewEntry()
 	port.SetPlaceHolder("目标端口")
-	port.SetText(logics.Port())
+	port.SetText(p.logics.Port())
 	port.OnChanged = func(s string) {
 		logrus.Infof("port check port: %s", s)
-		logics.SetPort(s)
+		p.logics.SetPort(s)
 		port.SetText(s)
 	}
 	port.Validator = validation.NewAllStrings(func(s string) error {
@@ -219,21 +234,21 @@ func portCheckFrom() fyne.CanvasObject {
 			port.SetText("")
 		},
 		OnSubmit: func() {
-			latestParams = fmt.Sprintf("%s%s%s%s", networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text)
+			p.latestParams = fmt.Sprintf("%s%s%s%s", networkSelect.Selected, interfaceSelect.Selected, host.Text, port.Text)
 			Go.RelativelySafeGo(func() {
 				logrus.Infof("port check page submitted")
 				selected := networkSelect.Selected
 				face := interfaceSelect.Selected
 				text := host.Text
 				targetPort := port.Text
-				response, err := logics.NormalDial(selected, face, text, targetPort)
-				if latestParams == fmt.Sprintf("%s%s%s%s", selected, face, text, targetPort) {
+				response, err := p.logics.NormalDial(selected, face, text, targetPort)
+				if p.latestParams == fmt.Sprintf("%s%s%s%s", selected, face, text, targetPort) {
 					if err != nil {
 						logrus.Errorf("port check error: %v", err)
-						view.SetText(logFormat(selected, face, text, targetPort, err.Error()) + view.Text)
+						p.view.SetText(p.logFormat(selected, face, text, targetPort, err.Error()) + p.view.Text)
 					} else {
 						logrus.Infof("port check result: %v", response)
-						view.SetText(logFormat(selected, face, text, targetPort, "OK !") + view.Text)
+						p.view.SetText(p.logFormat(selected, face, text, targetPort, "OK !") + p.view.Text)
 					}
 				}
 			})
@@ -250,6 +265,10 @@ func portCheckFrom() fyne.CanvasObject {
 	return form
 }
 
-func logFormat(network, i, host, port, msg string) string {
+func (p *PortCheck) logFormat(network, i, host, port, msg string) string {
 	return fmt.Sprintf("[%v] %v:%v(%v)[%v] => %v\n\n", time.Now().Format(`01-02 15:04:05`), host, port, network, i, msg)
+}
+
+func (p *PortCheck) ClearCache() {
+	p.logics.ClearCache()
 }

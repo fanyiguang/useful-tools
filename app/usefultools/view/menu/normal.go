@@ -1,12 +1,24 @@
-package view
+package menu
 
 import (
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/dialog"
+	"github.com/sirupsen/logrus"
 	"net/url"
+	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/view/constant"
 )
 
-func createMenu(a fyne.App, w fyne.Window, setPage func(Page)) *fyne.MainMenu {
+var _ adapter.Menu = (*Normal)(nil)
+
+type Normal struct {
+}
+
+func NewNormal() *Normal {
+	return &Normal{}
+}
+
+func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adapter.Page, setPage func(adapter.Page), clearCacheFn func()) *fyne.MainMenu {
 	var main *fyne.MainMenu
 	checkedFn := func(item *fyne.MenuItem, extendFn func(*fyne.MenuItem)) {
 		extendFn(item)
@@ -14,7 +26,16 @@ func createMenu(a fyne.App, w fyne.Window, setPage func(Page)) *fyne.MainMenu {
 		main.Refresh()
 	}
 
-	file := fyne.NewMenu("文件")
+	clearCache := fyne.NewMenuItem("清除所有缓存", func() {
+		logrus.Infof("clear cache")
+
+		cnf := dialog.NewConfirm("清除所有缓存", "请问您要清理所有缓存吗?", m.confirmClearCacheCallback(clearCacheFn), w)
+		cnf.SetDismissText("否")
+		cnf.SetConfirmText("是")
+		cnf.Show()
+	})
+
+	file := fyne.NewMenu("文件", clearCache)
 
 	majorItem := fyne.NewMenuItem("专业模式", nil)
 	majorItem.Action = func() {
@@ -24,7 +45,7 @@ func createMenu(a fyne.App, w fyne.Window, setPage func(Page)) *fyne.MainMenu {
 			} else {
 				a.Preferences().SetInt(constant.NavStatePreferenceProMode, 1)
 			}
-			if t, ok := Tutorials[fyne.CurrentApp().Preferences().String(constant.NavStatePreferenceCurrentPage)]; ok {
+			if t, ok := tutorials[fyne.CurrentApp().Preferences().String(constant.NavStatePreferenceCurrentPage)]; ok {
 				setPage(t)
 			}
 		})
@@ -83,4 +104,16 @@ func createMenu(a fyne.App, w fyne.Window, setPage func(Page)) *fyne.MainMenu {
 		file, mode, view, action, help,
 	)
 	return main
+}
+
+func (m *Normal) confirmClearCacheCallback(clearCacheFn func()) func(response bool) {
+	return func(response bool) {
+		logrus.Infof("clear cache: %v", response)
+		if !response {
+			return
+		}
+
+		clearCacheFn()
+		logrus.Infof("clear cache success")
+	}
 }
