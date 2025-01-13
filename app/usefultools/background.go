@@ -10,7 +10,7 @@ func backGround() {
 }
 
 func upgradeLoop() {
-	ticker := time.NewTicker(5 * time.Minute)
+	ticker := time.NewTicker(10 * time.Minute)
 	for {
 		select {
 		case <-ticker.C:

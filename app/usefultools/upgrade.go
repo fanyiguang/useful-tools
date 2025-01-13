@@ -25,7 +25,7 @@ type UpgradeParam struct {
 }
 
 func upgrade() error {
-	resp, err := http.Get(config.VersionURL)
+	resp, err := http.Get(getVersionUrl())
 	if err != nil {
 		return err
 	}
@@ -34,6 +34,7 @@ func upgrade() error {
 	if err != nil {
 		return err
 	}
+	logrus.Debugf("upgrade content: %v", string(content))
 	var upgradeParam UpgradeParam
 	err = json.Unmarshal(content, &upgradeParam)
 	if err != nil {
@@ -62,6 +63,14 @@ func upgrade() error {
 		logrus.Warnf("cmd run upgrade error: %v", err)
 	}
 	return nil
+}
+
+func getVersionUrl() string {
+	if config.IsTest() {
+		return config.VersionURL + "/version_test"
+	} else {
+		return config.VersionURL + "/version_release"
+	}
 }
 
 func buildDownloadUrl(version, pkgDownloadURL, zipPkgName string) string {

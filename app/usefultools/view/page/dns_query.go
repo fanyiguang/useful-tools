@@ -123,7 +123,7 @@ func (d *DnsQuery) rightScreen(w fyne.Window) fyne.CanvasObject {
 	if d.logics.ViewText() != "" {
 		d.view.SetText(d.logics.ViewText())
 	} else {
-		d.view.Text = "查询结果"
+		d.view.PlaceHolder = "检测结果"
 	}
 	d.view.OnChanged = func(s string) {
 		logrus.Infof("dns query result: %s", s)

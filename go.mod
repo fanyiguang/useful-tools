@@ -2,7 +2,7 @@ module useful-tools
 
 replace fyne.io/fyne/v2 => github.com/fanyiguang/fyne/v2 v2.5.2-0.20241029060605-108101273b45
 
-go 1.19
+go 1.23
 
 require (
 	fyne.io/fyne/v2 v2.5.0

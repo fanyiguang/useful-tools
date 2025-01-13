@@ -125,7 +125,7 @@ func (p *PortCheck) rightScreen(w fyne.Window) fyne.CanvasObject {
 	if p.logics.ViewText() != "" {
 		p.view.SetText(p.logics.ViewText())
 	} else {
-		p.view.Text = "检测结果"
+		p.view.PlaceHolder = "检测结果"
 	}
 	p.view.OnChanged = func(s string) {
 		logrus.Infof("port check result: %s", s)
