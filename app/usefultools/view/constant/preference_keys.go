@@ -6,7 +6,15 @@ const (
 	NavStatePreferenceHideBody     = "hideBody"
 	NavStatePreferenceSaveAesKey   = "saveAesKey"
 	NavStatePreferenceCloseUpgrade = "closeUpgrade"
+
+	CacheKeyAesKeyList = "aes-key-list"
 )
+
+func CacheKeys() []string {
+	return []string{
+		CacheKeyAesKeyList,
+	}
+}
 
 type ViewMode int
 

@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"github.com/sirupsen/logrus"
 	"strings"
+	"useful-tools/app/usefultools/adapter"
 	"useful-tools/helper/str"
 	"useful-tools/pkg/proxy"
 )
+
+var _ adapter.Controller = (*ProxyCheck)(nil)
 
 type ProxyCheck struct {
 	Base
@@ -121,4 +124,15 @@ func (p *ProxyCheck) parserConvenientModeContent(content string) (reqInfo proxy.
 
 func (p *ProxyCheck) SupportProxyTypeList() []string {
 	return []string{"SOCKS5", "SSL", "SSH", "HTTP", "HTTPS", "SS"}
+}
+
+func (p *ProxyCheck) ClearCache() {
+	p.SetTyp("")
+	p.SetHost("")
+	p.SetPort("")
+	p.SetUsername("")
+	p.SetPassword("")
+	p.SetUrls("")
+	p.SetViewText("")
+	p.SetPreModeInput("")
 }

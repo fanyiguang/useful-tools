@@ -56,6 +56,19 @@ func (m *Map[K, V]) Put(key K, value V) V {
 	return common.DefaultValue[V]()
 }
 
+func (m *Map[K, V]) PutFront(key K, value V) V {
+	m.init()
+	entry, loaded := m.rawMap[key]
+	if loaded {
+		oldValue := entry.Value.Value
+		entry.Value.Value = value
+		return oldValue
+	}
+	entry = m.raw.PushFront(collections.MapEntry[K, V]{Key: key, Value: value})
+	m.rawMap[key] = entry
+	return common.DefaultValue[V]()
+}
+
 func (m *Map[K, V]) Remove(key K) bool {
 	m.init()
 	entry, loaded := m.rawMap[key]

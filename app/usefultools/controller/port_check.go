@@ -5,11 +5,14 @@ import (
 	"github.com/sirupsen/logrus"
 	sysNet "net"
 	"strings"
+	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/model"
 	"useful-tools/helper/net"
 	"useful-tools/helper/str"
 	"useful-tools/helper/sys"
 )
+
+var _ adapter.Controller = (*PortCheck)(nil)
 
 type PortCheck struct {
 	Base
@@ -132,4 +135,13 @@ func (p *PortCheck) Dial(network, ip, port string) (isSuccess bool, err error) {
 	_ = dial.Close()
 	isSuccess = true
 	return
+}
+
+func (p *PortCheck) ClearCache() {
+	p.SetNetwork("")
+	p.SetIFace("")
+	p.SetHost("")
+	p.SetPort("")
+	p.SetViewText("")
+	p.SetPreModeInput("")
 }

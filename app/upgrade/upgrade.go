@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"time"
 	"useful-tools/common/config"
 )
@@ -29,7 +30,7 @@ func Upgrade(file string, processName string) error {
 	}
 	upDir = filepath.Join(config.GetProjectsPath(), "useful-tools_new")
 	if !utils.FileExists(upDir) {
-		_ = os.MkdirAll(upDir, 0666)
+		_ = os.MkdirAll(upDir, 0766)
 	}
 	defer func() {
 		err := os.RemoveAll(upDir)
@@ -82,13 +83,21 @@ func Upgrade(file string, processName string) error {
 	}
 	logrus.Infof("copy new dir: %v", upDir)
 
-	err = runProc(filepath.Join(runDir, fmt.Sprintf("%v.exe", processName)))
+	err = runProc(filepath.Join(runDir, crateProcessName(processName)))
 	if err != nil {
 		return err
 	}
 
-	logrus.Infof("run new process: %v", filepath.Join(runDir, fmt.Sprintf("%v.exe", processName)))
+	logrus.Infof("run new process: %v", filepath.Join(runDir, crateProcessName(processName)))
 	return nil
+}
+
+func crateProcessName(processName string) string {
+	if runtime.GOOS == "windows" {
+		return fmt.Sprintf("%v.exe", processName)
+	} else {
+		return processName
+	}
 }
 
 func runProc(filename string) error {

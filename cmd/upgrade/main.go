@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 
 func main() {
 	if len(os.Args) < 3 {
+		fmt.Println("error")
 		os.Exit(1)
 	}
 
