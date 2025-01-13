@@ -1,0 +1,7 @@
+{
+    "pkg_download_url": "https://gitee.com/qingdeng_ancient_wine/useful-tools-upgrade/releases/download",
+    "process_name": "useful-tools",
+    "zip_pkg_name": "useful-tools.zip",
+    "version": "2.2.0",
+    "env": "test"
+}
