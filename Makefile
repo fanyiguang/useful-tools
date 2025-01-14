@@ -34,7 +34,7 @@ mv-mac-arm64-pkg:
 
 # cross mac amd64 -------------------------------------------------------
 
-build-mac-amd64: cross-mac-amd64-upgrade mkdir-darwin-amd64 mv-darwin-amd64-upgrade cross-mac-amd64-tool mv-upgrade-to-darwin-amd64-pkg mv-mac-amd64-pkg
+build-mac-amd64: cross-mac-amd64-upgrade mkdir-darwin-amd64 mv-darwin-amd64-upgrade cross-mac-amd64-tool mv-mac-amd64-tool package-mac-amd64 mv-upgrade-to-darwin-amd64-pkg mv-mac-amd64-pkg
 
 cross-mac-amd64-tool:
 	fyne-cross darwin -arch=amd64 -icon ./resource/icon.png -name $(APPNAME) -app-id com.useful-tools.app -app-build 1 -app-version 2.1.0 -ldflags "-s -w -X 'useful-tools/common/config.Version=$(VERSION)' -X 'useful-tools/common/config.env=release'" ./cmd/usefultools
@@ -49,10 +49,18 @@ mv-darwin-amd64-upgrade:
 	mv ./fyne-cross/bin/darwin-amd64/$(UPGARDENAME) ./bin/darwin/amd64
 
 mv-upgrade-to-darwin-amd64-pkg:
-	mv ./bin/darwin/amd64/$(UPGARDENAME) ./fyne-cross/dist/darwin-amd64/useful-tools.app/Contents/MacOS
+	mv ./bin/darwin/amd64/$(UPGARDENAME) ./useful-tools.app/Contents/MacOS
+
+mv-mac-amd64-tool:
+	mv ./fyne-cross/dist/darwin-amd64/useful-tools.app/Contents/MacOS/usefultools ./bin/darwin/amd64/useful-tools
+
+package-mac-amd64:
+	rm -rf ./useful-tools.app
+	fyne package -os darwin -release -icon ./resource/icon.png --exe ./bin/darwin/amd64/$(APPNAME) --name useful-tools
 
 mv-mac-amd64-pkg:
-	cp -r ./fyne-cross/dist/darwin-amd64/useful-tools.app ./bin/darwin/amd64
+	cp -r ./useful-tools.app ./bin/darwin/amd64
+	rm -rf ./useful-tools.app
 
 # cross windows amd64 -------------------------------------------------------
 
