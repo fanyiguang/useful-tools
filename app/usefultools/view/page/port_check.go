@@ -97,12 +97,13 @@ func (p *PortCheck) proView() fyne.CanvasObject {
 				logrus.Infof("pre check port: %s", text)
 				response, err := p.logics.ProDial(text)
 				if p.latestParams == text {
+					now := time.Now()
 					if err != nil {
 						logrus.Errorf("pro port check error: %v", err)
-						p.view.SetText(p.logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), err.Error()) + p.view.Text)
+						p.view.SetText(p.logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), err.Error(), time.Now().Sub(now).String()) + p.view.Text)
 					} else {
 						logrus.Infof("pro port check result: %v", response)
-						p.view.SetText(p.logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), "OK !") + p.view.Text)
+						p.view.SetText(p.logFormat(gjson.Get(text, "network").String(), gjson.Get(text, "local_ip").String(), gjson.Get(text, "host").String(), gjson.Get(text, "port").String(), "OK !", time.Now().Sub(now).String()) + p.view.Text)
 					}
 				}
 			}()
@@ -241,14 +242,15 @@ func (p *PortCheck) portCheckFrom() fyne.CanvasObject {
 				face := interfaceSelect.Selected
 				text := host.Text
 				targetPort := port.Text
+				now := time.Now()
 				response, err := p.logics.NormalDial(selected, face, text, targetPort)
 				if p.latestParams == fmt.Sprintf("%s%s%s%s", selected, face, text, targetPort) {
 					if err != nil {
 						logrus.Errorf("port check error: %v", err)
-						p.view.SetText(p.logFormat(selected, face, text, targetPort, err.Error()) + p.view.Text)
+						p.view.SetText(p.logFormat(selected, face, text, targetPort, err.Error(), time.Now().Sub(now).String()) + p.view.Text)
 					} else {
 						logrus.Infof("port check result: %v", response)
-						p.view.SetText(p.logFormat(selected, face, text, targetPort, "OK !") + p.view.Text)
+						p.view.SetText(p.logFormat(selected, face, text, targetPort, "OK !", time.Now().Sub(now).String()) + p.view.Text)
 					}
 				}
 			})
@@ -265,8 +267,8 @@ func (p *PortCheck) portCheckFrom() fyne.CanvasObject {
 	return form
 }
 
-func (p *PortCheck) logFormat(network, i, host, port, msg string) string {
-	return fmt.Sprintf("[%v] %v:%v(%v)[%v] => %v\n\n", time.Now().Format(`01-02 15:04:05`), host, port, network, i, msg)
+func (p *PortCheck) logFormat(network, i, host, port, msg, t string) string {
+	return fmt.Sprintf("[%v] [%v] %v:%v(%v)[%v] => %v\n\n", time.Now().Format(`01-02 15:04:05`), t, host, port, network, i, msg)
 }
 
 func (p *PortCheck) ClearCache() {
