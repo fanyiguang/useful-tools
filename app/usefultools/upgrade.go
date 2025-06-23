@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 	"useful-tools/common/config"
+	"useful-tools/utils"
 )
 
 type UpgradeParam struct {
@@ -21,7 +22,8 @@ type UpgradeParam struct {
 	ProcessName    string `json:"process_name"`
 	ZipPkgName     string `json:"zip_pkg_name"`
 	Version        string `json:"version"`
-	Env            string `json:"env"`
+	Goos           string `json:"goos"`
+	Arch           string `json:"arch"`
 }
 
 func upgrade() error {
@@ -40,12 +42,8 @@ func upgrade() error {
 	if err != nil {
 		return err
 	}
-	logrus.Infof("new version: %v, current version: %v", upgradeParam.Version, config.Version)
-	if !isUpgrade(upgradeParam.Version, config.Version) {
-		return nil
-	}
-	if upgradeParam.Env != config.Env() {
-		logrus.Infof("upgrade env: %v, current env: %v", upgradeParam.Env, config.Env())
+	logrus.Infof("upgrade param: %+v", upgradeParam)
+	if !isUpgrade(upgradeParam, config.Version) {
 		return nil
 	}
 	filename := filepath.Join(os.TempDir(), fmt.Sprintf("useful-tools_%v.zip", upgradeParam.Version))
@@ -77,23 +75,33 @@ func buildDownloadUrl(version, pkgDownloadURL, zipPkgName string) string {
 	return fmt.Sprintf("%v/v%v/%v", pkgDownloadURL, version, fmt.Sprintf("%v_%v_%v", runtime.GOOS, runtime.GOARCH, zipPkgName))
 }
 
-func isUpgrade(newVersion string, oldVersion string) bool {
-	newVersion = cast.ToString(strings.ReplaceAll(newVersion, ".", ""))
-	oldVersion = cast.ToString(strings.ReplaceAll(oldVersion, ".", ""))
-	if newVersion > oldVersion {
-		return true
+func isUpgrade(upgradeParam UpgradeParam, oldVersion string) bool {
+	if !utils.InArray(runtime.GOOS, strings.Split(upgradeParam.Goos, ",")) {
+		return false
 	}
-	return false
+	if !utils.InArray(runtime.GOARCH, strings.Split(upgradeParam.Arch, ",")) {
+		return false
+	}
+	newVersion := cast.ToString(strings.ReplaceAll(upgradeParam.Version, ".", ""))
+	oldVersion = cast.ToString(strings.ReplaceAll(oldVersion, ".", ""))
+	if newVersion <= oldVersion {
+		return false
+	}
+	return true
 }
 
 func DownloadPkg(url string, filename string) error {
-	client := &http.Client{Timeout: 2 * time.Minute}
+	client := &http.Client{Timeout: 5 * time.Minute}
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
 	}
 
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("status code error: %d", resp.StatusCode)
+	}
 
 	zipfile, err := os.Create(filename)
 	if err != nil {
