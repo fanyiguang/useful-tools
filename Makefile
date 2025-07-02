@@ -7,7 +7,7 @@ UPGARDENAME=upgrade
 build: build-mac-arm64 build-mac-amd64 build-windows-amd64 zip
 
 # package mac arm64 -----------------------------------------------------------
-
+# package mac arm64 -----------------------------------------------------------
 build-mac-arm64: proc-mac-arm64 build-upgrade-mac-arm64 package-mac-arm64 copy-upgrade-arm64 mv-mac-arm64-pkg
 proc-mac-arm64:
 	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build \
