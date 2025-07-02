@@ -8,6 +8,7 @@ import (
 
 func main() {
 	logrus.SetLevel(logrus.DebugLevel)
+	logrus.SetLevel(logrus.DebugLevel)
 	err := usefultools.App()
 	if err != nil {
 		logrus.Errorf("%+v", err)
