@@ -30,6 +30,7 @@ func NewNormal() *Normal {
 			page.NewPortCheck(),
 			page.NewDnsQuery(),
 			page.NewAesConversion(),
+			page.NewJsonTools(),
 		},
 		tutorials:     make(map[string]adapter.Page),
 		tutorialIndex: make(map[string][]string),

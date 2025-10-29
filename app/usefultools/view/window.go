@@ -2,11 +2,6 @@ package view
 
 import (
 	"fmt"
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/driver/desktop"
-	"fyne.io/fyne/v2/widget"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/model"
@@ -15,6 +10,12 @@ import (
 	"useful-tools/app/usefultools/view/menu"
 	"useful-tools/app/usefultools/view/navication"
 	"useful-tools/app/usefultools/view/systray"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/driver/desktop"
+	"fyne.io/fyne/v2/widget"
 )
 
 type Window struct {
