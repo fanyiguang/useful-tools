@@ -5,16 +5,18 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
-	"github.com/sirupsen/logrus"
 	"useful-tools/app/usefultools/adapter"
+
+	"github.com/sirupsen/logrus"
 )
 
 var _ adapter.Controller = (*JsonTools)(nil)
 
 type JsonTools struct {
 	Base
-	viewText string
-	data     string
+	viewText       string
+	data           string
+	conversionType string
 }
 
 func NewJsonTools() *JsonTools {
@@ -101,13 +103,13 @@ func (j *JsonTools) RemoveEscapes(data string) (string, error) {
 // ProcessJson 根据操作类型处理JSON
 func (j *JsonTools) ProcessJson(operation, content string) (string, error) {
 	logrus.Infof("json tools operation: %s", operation)
-	
+
 	// 移除前后空白
 	content = strings.TrimSpace(content)
 	if content == "" {
 		return "", errors.New("请输入JSON内容")
 	}
-	
+
 	switch operation {
 	case "格式化":
 		return j.FormatJson(content), nil
@@ -115,14 +117,35 @@ func (j *JsonTools) ProcessJson(operation, content string) (string, error) {
 		return j.MinifyJson(content)
 	case "去除转义":
 		return j.RemoveEscapes(content)
+	case "增加转义":
+		return j.AddEscapes(content)
 	default:
 		return "", errors.New("不支持的操作类型")
 	}
 }
 
+// AddEscapes 为JSON字符串添加转义字符
+func (j *JsonTools) AddEscapes(data string) (string, error) {
+	// 将字符串作为JSON字符串字面量进行编码，自动添加转义
+	encoded, err := json.Marshal(data)
+	if err != nil {
+		return "", err
+	}
+	// 去除外层的引号
+	return string(encoded[1 : len(encoded)-1]), nil
+}
+
 // GetOperations 获取支持的操作列表
 func (j *JsonTools) GetOperations() []string {
-	return []string{"格式化", "压缩", "去除转义"}
+	return []string{"格式化", "压缩", "去除转义", "增加转义"}
+}
+
+func (a *JsonTools) ConversionType() string {
+	return a.conversionType
+}
+
+func (a *JsonTools) SetConversionType(conversionType string) {
+	a.conversionType = conversionType
 }
 
 // ClearCache 清除缓存数据

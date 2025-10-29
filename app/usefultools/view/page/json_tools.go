@@ -96,7 +96,11 @@ func (j *JsonTools) inputSection() fyne.CanvasObject {
 	j.opType = widget.NewSelect(j.operations, func(s string) {
 		logrus.Infof("json tools operation selected: %s", s)
 	})
-	j.opType.SetSelectedIndex(0)
+	if j.logics.ConversionType() != "" {
+		j.opType.SetSelected(j.logics.ConversionType())
+	} else {
+		j.opType.SetSelected("压缩")
+	}
 
 	// 创建输入框
 	j.inputEntry = widget.NewMultiLineEntryEx(nil, nil, nil, nil)
@@ -106,6 +110,7 @@ func (j *JsonTools) inputSection() fyne.CanvasObject {
 	j.inputEntry.OnChanged = func(s string) {
 		j.logics.SetData(s)
 	}
+	j.inputEntry.SetText(j.logics.Data())
 	j.inputEntry.SetMinRowsVisible(15)
 
 	// 创建处理按钮
@@ -132,8 +137,13 @@ func (j *JsonTools) inputSection() fyne.CanvasObject {
 	form := &widget.StyleForm{
 		Items: []*widget.StyleFormItem{
 			{Text: "操作类型:", Widget: j.opType, HintText: "必选"},
-			{Text: "JSON输入:", Widget: j.inputEntry, HintText: "必填"},
+			{Text: "内容输入:", Widget: j.inputEntry, HintText: "必填"},
 		},
+	}
+
+	j.opType.OnChanged = func(s string) {
+		logrus.Infof("json tools operation selected: %s", s)
+		j.logics.SetConversionType(s)
 	}
 
 	// 创建按钮区域
