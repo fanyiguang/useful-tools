@@ -106,7 +106,7 @@ func (j *JsonTools) inputSection() fyne.CanvasObject {
 	j.inputEntry.OnChanged = func(s string) {
 		j.logics.SetData(s)
 	}
-	j.inputEntry.SetMinRowsVisible(10)
+	j.inputEntry.SetMinRowsVisible(15)
 
 	// 创建处理按钮
 	processBtn := &widget.Button{
@@ -137,7 +137,7 @@ func (j *JsonTools) inputSection() fyne.CanvasObject {
 	}
 
 	// 创建按钮区域
-	buttonRow := container.NewGridWithColumns(2, processBtn, clearInputBtn)
+	buttonRow := container.NewGridWithColumns(2, clearInputBtn, processBtn)
 
 	// 使用Border布局将按钮放在底部，与右侧页面的按钮对齐
 	return container.NewBorder(nil, buttonRow, nil, nil, form)
