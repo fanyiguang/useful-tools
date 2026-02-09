@@ -3,6 +3,7 @@ package navication
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/view/constant"
@@ -60,7 +61,9 @@ func (n *Normal) CreateNavigation(setPage func(page adapter.Page), loadPrevious 
 			return ok && len(children) > 0
 		},
 		CreateNode: func(branch bool) fyne.CanvasObject {
-			return widget.NewLabel("Collection Widgets")
+			icon := widget.NewIcon(nil)
+			label := widget.NewLabel("Collection Widgets")
+			return container.NewHBox(icon, label)
 		},
 		UpdateNode: func(uid string, branch bool, obj fyne.CanvasObject) {
 			t, ok := n.tutorials[uid]
@@ -68,11 +71,15 @@ func (n *Normal) CreateNavigation(setPage func(page adapter.Page), loadPrevious 
 				fyne.LogError("Missing tutorial panel: "+uid, nil)
 				return
 			}
-			obj.(*widget.Label).SetText(t.GetTitle())
+			node := obj.(*fyne.Container)
+			icon := node.Objects[0].(*widget.Icon)
+			label := node.Objects[1].(*widget.Label)
+			icon.SetResource(navIconForTitle(t.GetTitle()))
+			label.SetText(t.GetTitle())
 			if unsupportedTutorial(t) {
-				obj.(*widget.Label).TextStyle = fyne.TextStyle{Italic: true}
+				label.TextStyle = fyne.TextStyle{Italic: true}
 			} else {
-				obj.(*widget.Label).TextStyle = fyne.TextStyle{}
+				label.TextStyle = fyne.TextStyle{}
 			}
 		},
 		OnSelected: func(uid string) {
@@ -101,6 +108,25 @@ func (n *Normal) CreateNavigation(setPage func(page adapter.Page), loadPrevious 
 
 func unsupportedTutorial(t adapter.Page) bool {
 	return !t.GetSupportWeb() && fyne.CurrentDevice().IsBrowser()
+}
+
+func navIconForTitle(title string) fyne.Resource {
+	switch title {
+	case "草稿搭子":
+		return theme.DocumentCreateIcon()
+	case "代理检测":
+		return theme.SettingsIcon()
+	case "端口检测":
+		return theme.ComputerIcon()
+	case "DNS查询":
+		return theme.SearchIcon()
+	case "AES转换":
+		return theme.ContentRedoIcon()
+	case "JSON工具":
+		return theme.FileTextIcon()
+	default:
+		return theme.InfoIcon()
+	}
 }
 
 func (n *Normal) Tutorials() map[string]adapter.Page {
