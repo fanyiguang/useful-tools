@@ -11,6 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
+	"time"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/view/constant"
@@ -26,6 +27,7 @@ type ProxyCheck struct {
 	view         *widget.Entry
 	scroll       *container.Scroll
 	latestParams string
+	loadingStop  chan struct{}
 }
 
 func NewProxyCheck() *ProxyCheck {
@@ -89,11 +91,13 @@ func (p *ProxyCheck) proView() fyne.CanvasObject {
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			p.latestParams = multi.Text
+			p.startLoading()
 			go func() {
 				text := multi.Text
 				logrus.Infof("pre check proxy: %s", text)
 				response, err := p.logics.ProCheckProxy(text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
 				if p.latestParams == text {
+					p.stopLoading()
 					if err != nil {
 						logrus.Warnf("pre check proxy failed: %s", err)
 						p.view.SetText(err.Error())
@@ -251,6 +255,7 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 		},
 		OnSubmit: func() {
 			p.latestParams = fmt.Sprintf("%v%v%v%v%v%v%v", host.Text, port.Text, username.Text, password.Text, proxyTypeSelect.Selected, urls.Text, fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceHideBody))
+			p.startLoading()
 			Go.RelativelySafeGo(func() {
 				hostText := host.Text
 				portText := port.Text
@@ -262,6 +267,7 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 				logrus.Infof("proxy check page submitted")
 				response, err := p.logics.NormalCheckProxy(hostText, portText, usernameText, passwordText, selectText, urlText, isHideBody)
 				if p.latestParams == fmt.Sprintf("%v%v%v%v%v%v%v", hostText, portText, usernameText, passwordText, selectText, urlText, isHideBody) {
+					p.stopLoading()
 					if err != nil {
 						logrus.Errorf("proxy check error: %v", err)
 						p.view.SetText(err.Error())
@@ -282,6 +288,44 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 		},
 	}
 	return form
+}
+
+func (p *ProxyCheck) startLoading() {
+	if p.view == nil {
+		return
+	}
+	p.stopLoading()
+	stop := make(chan struct{})
+	p.loadingStop = stop
+	base := "正在检测中，请稍等"
+	p.view.SetText(base + "...")
+	go func() {
+		ticker := time.NewTicker(350 * time.Millisecond)
+		defer ticker.Stop()
+		dots := 0
+		for {
+			select {
+			case <-stop:
+				return
+			case <-ticker.C:
+				dots = (dots + 1) % 4
+				msg := base + strings.Repeat(".", dots)
+				fyne.Do(func() {
+					if p.loadingStop == stop {
+						p.view.SetText(msg)
+					}
+				})
+			}
+		}
+	}()
+}
+
+func (p *ProxyCheck) stopLoading() {
+	if p.loadingStop == nil {
+		return
+	}
+	close(p.loadingStop)
+	p.loadingStop = nil
 }
 
 func (p *ProxyCheck) ClearCache() {
