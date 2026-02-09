@@ -48,7 +48,8 @@ func NewNormal() *Normal {
 
 func (n *Normal) CreateNavigation(setPage func(page adapter.Page), loadPrevious bool) fyne.CanvasObject {
 	app := fyne.CurrentApp()
-	tree := &widget.Tree{
+	var tree *widget.Tree
+	tree = &widget.Tree{
 		ChildUIDs: func(uid string) []string {
 			return n.tutorialIndex[uid]
 		},
@@ -80,6 +81,7 @@ func (n *Normal) CreateNavigation(setPage func(page adapter.Page), loadPrevious 
 				}
 				app.Preferences().SetString(constant.NavStatePreferenceCurrentPage, uid)
 				setPage(t)
+				tree.Refresh()
 			}
 		},
 	}

@@ -1,12 +1,14 @@
 package menu
 
 import (
-	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/dialog"
-	"github.com/sirupsen/logrus"
 	"net/url"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/view/constant"
+	"useful-tools/app/usefultools/view/style"
+
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/dialog"
+	"github.com/sirupsen/logrus"
 )
 
 var _ adapter.Menu = (*Normal)(nil)
@@ -64,7 +66,47 @@ func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adap
 		})
 	}
 	hideBodyItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceHideBody)
-	view := fyne.NewMenu("视图", hideBodyItem)
+	styleKey := a.Preferences().String(constant.NavStatePreferenceStyle)
+	if styleKey == "" {
+		styleKey = constant.StyleDefault
+		a.Preferences().SetString(constant.NavStatePreferenceStyle, styleKey)
+	}
+	style.Apply(a, styleKey)
+
+	defaultStyleItem := fyne.NewMenuItem("默认", nil)
+	lowGreenStyleItem := fyne.NewMenuItem("低饱和绿", nil)
+	warmLuxuryStyleItem := fyne.NewMenuItem("轻奢暖调", nil)
+	neutralMinimalStyleItem := fyne.NewMenuItem("中性极简", nil)
+	setStyleChecked := func(key string) {
+		defaultStyleItem.Checked = key == constant.StyleDefault
+		lowGreenStyleItem.Checked = key == constant.StyleLowSaturationGreen
+		warmLuxuryStyleItem.Checked = key == constant.StyleWarmLuxury
+		neutralMinimalStyleItem.Checked = key == constant.StyleNeutralMinimal
+	}
+	applyStyle := func(key string) {
+		a.Preferences().SetString(constant.NavStatePreferenceStyle, key)
+		style.Apply(a, key)
+		setStyleChecked(key)
+		main.Refresh()
+	}
+	defaultStyleItem.Action = func() {
+		applyStyle(constant.StyleDefault)
+	}
+	lowGreenStyleItem.Action = func() {
+		applyStyle(constant.StyleLowSaturationGreen)
+	}
+	warmLuxuryStyleItem.Action = func() {
+		applyStyle(constant.StyleWarmLuxury)
+	}
+	neutralMinimalStyleItem.Action = func() {
+		applyStyle(constant.StyleNeutralMinimal)
+	}
+	setStyleChecked(styleKey)
+
+	styleMenu := fyne.NewMenu("样式", defaultStyleItem, lowGreenStyleItem, warmLuxuryStyleItem, neutralMinimalStyleItem)
+	styleItem := fyne.NewMenuItem("样式", nil)
+	styleItem.ChildMenu = styleMenu
+	view := fyne.NewMenu("视图", hideBodyItem, styleItem)
 
 	saveAesItem := fyne.NewMenuItem("保存AES密钥", nil)
 	saveAesItem.Action = func() {
