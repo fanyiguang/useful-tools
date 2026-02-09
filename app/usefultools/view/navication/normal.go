@@ -20,6 +20,7 @@ type Normal struct {
 	pages         []adapter.Page
 	tutorials     map[string]adapter.Page
 	tutorialIndex map[string][]string
+	lastSelected  string
 }
 
 func NewNormal() *Normal {
@@ -81,7 +82,11 @@ func (n *Normal) CreateNavigation(setPage func(page adapter.Page), loadPrevious 
 				}
 				app.Preferences().SetString(constant.NavStatePreferenceCurrentPage, uid)
 				setPage(t)
-				tree.Refresh()
+				if n.lastSelected != "" && n.lastSelected != uid {
+					tree.RefreshItem(n.lastSelected)
+				}
+				n.lastSelected = uid
+				tree.RefreshItem(uid)
 			}
 		},
 	}
