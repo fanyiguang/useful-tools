@@ -10,6 +10,7 @@ import (
 	"useful-tools/app/usefultools/view/menu"
 	"useful-tools/app/usefultools/view/navication"
 	"useful-tools/app/usefultools/view/systray"
+	viewWidget "useful-tools/app/usefultools/view/widget"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -76,8 +77,13 @@ func (w *Window) Run() {
 	w.window.SetMainMenu(w.menu.CreateMenu(w.application, w.window, w.navigation.Tutorials(), setPage, w.ClearCache))
 	w.window.SetMaster()
 
-	tutorial := container.NewBorder(
-		container.NewVBox(w.title, widget.NewSeparator(), w.intro), nil, nil, nil, content)
+	headerLeft := viewWidget.MakeCellSize(10, 10)
+	headerRight := viewWidget.MakeCellSize(10, 10)
+	header := container.NewBorder(
+		nil, nil, headerLeft, headerRight,
+		container.NewVBox(w.title, widget.NewSeparator(), w.intro),
+	)
+	tutorial := container.NewBorder(header, nil, nil, nil, content)
 	if fyne.CurrentDevice().IsMobile() {
 		w.window.SetContent(w.navigation.CreateNavigation(setPage, false))
 	} else {
