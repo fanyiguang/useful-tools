@@ -8,6 +8,7 @@ const (
 	NavStatePreferenceCloseUpgrade = "closeUpgrade"
 	NavStatePreferenceStyle        = "style"
 	NavStatePreferenceLanguage     = "language"
+	NavStatePreferenceTextCompare  = "textCompare"
 
 	CacheKeyAesKeyList = "aes-key-list"
 )

@@ -29,6 +29,8 @@ const (
 	KeyMenuHelpHome            Key = "menu.help_home"
 	KeySystrayOpen             Key = "systray.open"
 
+	KeyMenuTextCompare Key = "menu.text_compare"
+
 	KeyButtonClear   Key = "button.clear"
 	KeyButtonCheck   Key = "button.check"
 	KeyButtonCopy    Key = "button.copy"

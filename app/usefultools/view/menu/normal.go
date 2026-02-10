@@ -109,6 +109,24 @@ func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adap
 	styleItem.ChildMenu = styleMenu
 	view := fyne.NewMenu(i18n.T(i18n.KeyMenuView), hideBodyItem, styleItem)
 
+	textCompareItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuTextCompare), nil)
+	textCompareItem.Action = func() {
+		checkedFn(textCompareItem, func(item *fyne.MenuItem) {
+			if item.Checked {
+				a.Preferences().SetBool(constant.NavStatePreferenceTextCompare, false)
+			} else {
+				a.Preferences().SetBool(constant.NavStatePreferenceTextCompare, true)
+			}
+			if t, ok := tutorials[fyne.CurrentApp().Preferences().String(constant.NavStatePreferenceCurrentPage)]; ok {
+				if t.GetID() == constant.PageIDDraft {
+					setPage(t)
+				}
+			}
+		})
+	}
+	textCompareItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceTextCompare)
+	// function := fyne.NewMenu(i18n.T(i18n.KeyMenuFunction), textCompareItem)
+
 	saveAesItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuSaveAesKey), nil)
 	saveAesItem.Action = func() {
 		checkedFn(saveAesItem, func(item *fyne.MenuItem) {
@@ -156,7 +174,7 @@ func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adap
 	languageItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuLanguage), nil)
 	languageItem.ChildMenu = languageMenu
 
-	action := fyne.NewMenu(i18n.T(i18n.KeyMenuAction), saveAesItem, closeUpgradeItem, languageItem)
+	action := fyne.NewMenu(i18n.T(i18n.KeyMenuAction), textCompareItem, saveAesItem, closeUpgradeItem, languageItem)
 
 	feedbackAesItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuFeedback), func() {
 		u, _ := url.Parse("https://github.com/fanyiguang/useful-tools/issues")
