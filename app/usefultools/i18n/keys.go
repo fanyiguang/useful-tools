@@ -118,4 +118,16 @@ const (
 	KeyDnsHostLabel          Key = "dns.host.label"
 	KeyDnsDomainLabel        Key = "dns.domain.label"
 	KeyDnsInvalidDomainError Key = "dns.invalid_domain.error"
+
+	KeyPageFormatConversionTitle Key = "page.format_conversion.title"
+	KeyPageFormatConversionIntro Key = "page.format_conversion.intro"
+	KeyFormatConversionTargetLabel Key = "format_conversion.target.label"
+	KeyFormatConversionInputLabel  Key = "format_conversion.input.label"
+	KeyFormatJson                  Key = "format.json"
+	KeyFormatYaml                  Key = "format.yaml"
+	KeyFormatToml                  Key = "format.toml"
+	KeyFormatProperties            Key = "format.properties"
+	KeyFormatNotSupportedError     Key = "format.not_supported.error"
+	KeyFormatError                 Key = "format.error"
+	KeyButtonConvert               Key = "button.convert"
 )

@@ -35,6 +35,7 @@ func NewNormal() *Normal {
 			page.NewDnsQuery(),
 			page.NewAesConversion(),
 			page.NewJsonTools(),
+			page.NewFormatConversion(),
 		},
 		tutorials:     make(map[string]adapter.Page),
 		tutorialIndex: make(map[string][]string),
@@ -134,6 +135,7 @@ var legacyTitleToID = func() map[string]string {
 	add(constant.PageIDDnsQuery, i18n.KeyPageDnsTitle)
 	add(constant.PageIDAesConvert, i18n.KeyPageAesTitle)
 	add(constant.PageIDJsonTools, i18n.KeyPageJsonTitle)
+	add(constant.PageIDFormatConversion, i18n.KeyPageFormatConversionTitle)
 	return mapping
 }()
 
@@ -151,6 +153,8 @@ func navIconForID(id string) fyne.Resource {
 		return theme.ContentRedoIcon()
 	case constant.PageIDJsonTools:
 		return theme.FileTextIcon()
+	case constant.PageIDFormatConversion:
+		return theme.ListIcon()
 	default:
 		return theme.InfoIcon()
 	}

@@ -6,8 +6,10 @@ go 1.23
 
 require (
 	fyne.io/fyne/v2 v2.5.0
+	github.com/BurntSushi/toml v1.5.0
 	github.com/CodyGuo/win v0.0.0-20170113125346-08e6b7208274
 	github.com/astaxie/beego v1.12.3
+	github.com/magiconair/properties v1.8.10
 	github.com/miekg/dns v1.1.47
 	github.com/pkg/errors v0.9.1
 	github.com/sagernet/sing v0.3.0
@@ -21,11 +23,11 @@ require (
 	golang.org/x/sys v0.30.0
 	golang.org/x/text v0.22.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	fyne.io/systray v1.12.0 // indirect
-	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fredbi/uri v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
@@ -64,6 +66,5 @@ require (
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/tools v0.24.1 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/blake3 v1.2.1 // indirect
 )

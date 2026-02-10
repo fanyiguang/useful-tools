@@ -126,6 +126,18 @@ var translations = map[string]map[Key]string{
 		KeyDnsHostLabel:          "DNS地址:",
 		KeyDnsDomainLabel:        "解析域名:",
 		KeyDnsInvalidDomainError: "域名格式错误！",
+
+		KeyPageFormatConversionTitle:   "格式转换",
+		KeyPageFormatConversionIntro:   "支持 TOML, YAML, JSON, Properties 格式互转",
+		KeyFormatConversionTargetLabel: "转换为:",
+		KeyFormatConversionInputLabel:  "内容输入:",
+		KeyFormatJson:                  "JSON",
+		KeyFormatYaml:                  "YAML",
+		KeyFormatToml:                  "TOML",
+		KeyFormatProperties:            "Properties",
+		KeyFormatNotSupportedError:     "格式不支持",
+		KeyFormatError:                 "格式错误",
+		KeyButtonConvert:               "转换",
 	},
 	LangEnUS: {
 		KeyMenuFile:                "File",
@@ -243,6 +255,18 @@ var translations = map[string]map[Key]string{
 		KeyDnsHostLabel:          "DNS Server:",
 		KeyDnsDomainLabel:        "Domain:",
 		KeyDnsInvalidDomainError: "Invalid domain format.",
+
+		KeyPageFormatConversionTitle:   "Format Conversion",
+		KeyPageFormatConversionIntro:   "Convert between TOML, YAML, JSON, and Properties",
+		KeyFormatConversionTargetLabel: "Convert to:",
+		KeyFormatConversionInputLabel:  "Input:",
+		KeyFormatJson:                  "JSON",
+		KeyFormatYaml:                  "YAML",
+		KeyFormatToml:                  "TOML",
+		KeyFormatProperties:            "Properties",
+		KeyFormatNotSupportedError:     "Format not supported",
+		KeyFormatError:                 "Format error",
+		KeyButtonConvert:               "Convert",
 	},
 }
 
