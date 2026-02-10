@@ -14,6 +14,7 @@ import (
 	"time"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
 	"useful-tools/helper/Go"
@@ -33,8 +34,9 @@ type ProxyCheck struct {
 func NewProxyCheck() *ProxyCheck {
 	return &ProxyCheck{
 		BasePage: BasePage{
-			Title:      "代理检测",
-			Intro:      "多协议代理可用性检测",
+			ID:         constant.PageIDProxyCheck,
+			TitleKey:   i18n.KeyPageProxyTitle,
+			IntroKey:   i18n.KeyPageProxyIntro,
 			SupportWeb: true,
 		},
 		logics: controller.NewProxyCheck(),
@@ -78,7 +80,7 @@ func (p *ProxyCheck) proView() fyne.CanvasObject {
 	}
 
 	box := container.NewGridWithColumns(2, &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -86,7 +88,7 @@ func (p *ProxyCheck) proView() fyne.CanvasObject {
 			multi.SetText("")
 		},
 	}, &widget.Button{
-		Text:       "检测",
+		Text:       i18n.T(i18n.KeyButtonCheck),
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -125,7 +127,7 @@ func (p *ProxyCheck) rightProxyCheck(w fyne.Window) fyne.CanvasObject {
 	if p.logics.ViewText() != "" {
 		p.view.SetText(p.logics.ViewText())
 	} else {
-		p.view.PlaceHolder = "检测结果"
+		p.view.PlaceHolder = i18n.T(i18n.KeyProxyResultPlaceholder)
 	}
 	p.view.OnChanged = func(s string) {
 		logrus.Infof("proxy check result: %s", s)
@@ -134,7 +136,7 @@ func (p *ProxyCheck) rightProxyCheck(w fyne.Window) fyne.CanvasObject {
 	//view.Disable()
 
 	box := container.NewGridWithColumns(2, &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -142,7 +144,7 @@ func (p *ProxyCheck) rightProxyCheck(w fyne.Window) fyne.CanvasObject {
 			p.view.SetText("")
 		},
 	}, &widget.Button{
-		Text:       "复制",
+		Text:       i18n.T(i18n.KeyButtonCopy),
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -167,7 +169,7 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 	}
 
 	host := widget.NewEntry()
-	host.SetPlaceHolder("代理地址")
+	host.SetPlaceHolder(i18n.T(i18n.KeyProxyHostPlaceholder))
 	host.SetText(p.logics.Host())
 	host.OnChanged = func(s string) {
 		logrus.Infof("proxy check host: %s", s)
@@ -182,12 +184,12 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 		if strings.Contains(strings.TrimSpace(s), ".") {
 			return nil
 		} else {
-			return errors.New("地址格式错误！")
+			return errors.New(i18n.T(i18n.KeyProxyInvalidHostError))
 		}
 	})
 
 	port := widget.NewEntry()
-	port.SetPlaceHolder("代理端口")
+	port.SetPlaceHolder(i18n.T(i18n.KeyProxyPortPlaceholder))
 	port.SetText(p.logics.Port())
 	port.OnChanged = func(s string) {
 		logrus.Infof("proxy check port: %s", s)
@@ -202,16 +204,16 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 		iPort, err := strconv.Atoi(strings.TrimSpace(s))
 		if err != nil {
 			logrus.Warnf("strconv.Atoi error: %v", err)
-			return errors.New("代理端口错误！")
+			return errors.New(i18n.T(i18n.KeyProxyInvalidPortError))
 		}
 		if iPort > 65535 || iPort < 0 {
-			return errors.New("代理端口不在合法范围内！")
+			return errors.New(i18n.T(i18n.KeyProxyInvalidPortRangeError))
 		}
 		return nil
 	})
 
 	username := widget.NewEntry()
-	username.SetPlaceHolder("代理账号")
+	username.SetPlaceHolder(i18n.T(i18n.KeyProxyUsernamePlaceholder))
 	username.SetText(p.logics.Username())
 	username.OnChanged = func(s string) {
 		logrus.Infof("proxy check username: %s", s)
@@ -219,7 +221,7 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 	}
 
 	password := widget.NewPasswordEntry()
-	password.SetPlaceHolder("代理密码")
+	password.SetPlaceHolder(i18n.T(i18n.KeyProxyPasswordPlaceholder))
 	password.SetText(p.logics.Password())
 	password.OnChanged = func(s string) {
 		logrus.Infof("proxy check password: %s", s)
@@ -227,7 +229,7 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 	}
 
 	urls := widget.NewMultiLineEntry()
-	urls.SetPlaceHolder("代理URL")
+	urls.SetPlaceHolder(i18n.T(i18n.KeyProxyURLPlaceholder))
 	urls.SetText(p.logics.Urls())
 	urls.OnChanged = func(s string) {
 		logrus.Infof("proxy check urls: %s", s)
@@ -237,12 +239,12 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 	var form *widget.StyleForm
 	form = &widget.StyleForm{
 		Items: []*widget.StyleFormItem{
-			{Text: "代理类型:", Widget: proxyTypeSelect, HintText: "必选"},
-			{Text: "代理地址:", Widget: host, HintText: "必填"},
-			{Text: "代理端口:", Widget: port, HintText: "必填"},
-			{Text: "代理账号:", Widget: username, HintText: "必填"},
-			{Text: "代理密码:", Widget: password, HintText: "必填"},
-			{Text: "检测地址:", Widget: urls, HintText: "选填"},
+			{Text: i18n.T(i18n.KeyProxyTypeLabel), Widget: proxyTypeSelect, HintText: i18n.T(i18n.KeyHintSelectRequired)},
+			{Text: i18n.T(i18n.KeyProxyHostLabel), Widget: host, HintText: i18n.T(i18n.KeyHintRequired)},
+			{Text: i18n.T(i18n.KeyProxyPortLabel), Widget: port, HintText: i18n.T(i18n.KeyHintRequired)},
+			{Text: i18n.T(i18n.KeyProxyUsernameLabel), Widget: username, HintText: i18n.T(i18n.KeyHintRequired)},
+			{Text: i18n.T(i18n.KeyProxyPasswordLabel), Widget: password, HintText: i18n.T(i18n.KeyHintRequired)},
+			{Text: i18n.T(i18n.KeyProxyTestURLLabel), Widget: urls, HintText: i18n.T(i18n.KeyHintOptional)},
 		},
 		OnCancel: func() {
 			logrus.Infof("proxy check page cancelled")
@@ -278,8 +280,8 @@ func (p *ProxyCheck) checkFrom() fyne.CanvasObject {
 				}
 			})
 		},
-		SubmitText: "检测",
-		CancelText: "清空",
+		SubmitText: i18n.T(i18n.KeyButtonCheck),
+		CancelText: i18n.T(i18n.KeyButtonClear),
 		ButtonLayout: func(cancel *widget.Button, submit *widget.Button) *fyne.Container {
 			return container.NewGridWithColumns(2, cancel, submit)
 		},
@@ -297,7 +299,7 @@ func (p *ProxyCheck) startLoading() {
 	p.stopLoading()
 	stop := make(chan struct{})
 	p.loadingStop = stop
-	base := "正在检测中，请稍等"
+	base := i18n.T(i18n.KeyProxyCheckInProgress)
 	p.view.SetText(base + "...")
 	go func() {
 		ticker := time.NewTicker(350 * time.Millisecond)

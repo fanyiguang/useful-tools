@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"useful-tools/app/usefultools/adapter"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/view/constant"
 	"useful-tools/app/usefultools/view/page"
 )
@@ -22,6 +23,7 @@ type Normal struct {
 	tutorials     map[string]adapter.Page
 	tutorialIndex map[string][]string
 	lastSelected  string
+	tree          *widget.Tree
 }
 
 func NewNormal() *Normal {
@@ -40,8 +42,8 @@ func NewNormal() *Normal {
 
 	var titles []string
 	for _, p := range n.pages {
-		n.tutorials[p.GetTitle()] = p
-		titles = append(titles, p.GetTitle())
+		n.tutorials[p.GetID()] = p
+		titles = append(titles, p.GetID())
 	}
 
 	n.tutorialIndex[""] = titles
@@ -74,7 +76,7 @@ func (n *Normal) CreateNavigation(setPage func(page adapter.Page), loadPrevious 
 			node := obj.(*fyne.Container)
 			icon := node.Objects[0].(*widget.Icon)
 			label := node.Objects[1].(*widget.Label)
-			icon.SetResource(navIconForTitle(t.GetTitle()))
+			icon.SetResource(navIconForID(t.GetID()))
 			label.SetText(t.GetTitle())
 			if unsupportedTutorial(t) {
 				label.TextStyle = fyne.TextStyle{Italic: true}
@@ -97,9 +99,16 @@ func (n *Normal) CreateNavigation(setPage func(page adapter.Page), loadPrevious 
 			}
 		},
 	}
+	n.tree = tree
 
 	if loadPrevious {
-		currentPref := app.Preferences().StringWithFallback(constant.NavStatePreferenceCurrentPage, "草稿搭子")
+		currentPref := app.Preferences().StringWithFallback(constant.NavStatePreferenceCurrentPage, constant.PageIDDraft)
+		if _, ok := n.tutorials[currentPref]; !ok {
+			if mapped, ok := legacyTitleToID[currentPref]; ok {
+				currentPref = mapped
+			}
+		}
+		app.Preferences().SetString(constant.NavStatePreferenceCurrentPage, currentPref)
 		tree.Select(currentPref)
 	}
 
@@ -110,19 +119,37 @@ func unsupportedTutorial(t adapter.Page) bool {
 	return !t.GetSupportWeb() && fyne.CurrentDevice().IsBrowser()
 }
 
-func navIconForTitle(title string) fyne.Resource {
-	switch title {
-	case "草稿搭子":
+var legacyTitleToID = func() map[string]string {
+	mapping := make(map[string]string)
+	add := func(id string, key i18n.Key) {
+		for _, title := range i18n.All(key) {
+			if title != "" {
+				mapping[title] = id
+			}
+		}
+	}
+	add(constant.PageIDDraft, i18n.KeyPageDraftTitle)
+	add(constant.PageIDProxyCheck, i18n.KeyPageProxyTitle)
+	add(constant.PageIDPortCheck, i18n.KeyPagePortTitle)
+	add(constant.PageIDDnsQuery, i18n.KeyPageDnsTitle)
+	add(constant.PageIDAesConvert, i18n.KeyPageAesTitle)
+	add(constant.PageIDJsonTools, i18n.KeyPageJsonTitle)
+	return mapping
+}()
+
+func navIconForID(id string) fyne.Resource {
+	switch id {
+	case constant.PageIDDraft:
 		return theme.DocumentCreateIcon()
-	case "代理检测":
+	case constant.PageIDProxyCheck:
 		return theme.SettingsIcon()
-	case "端口检测":
+	case constant.PageIDPortCheck:
 		return theme.ComputerIcon()
-	case "DNS查询":
+	case constant.PageIDDnsQuery:
 		return theme.SearchIcon()
-	case "AES转换":
+	case constant.PageIDAesConvert:
 		return theme.ContentRedoIcon()
-	case "JSON工具":
+	case constant.PageIDJsonTools:
 		return theme.FileTextIcon()
 	default:
 		return theme.InfoIcon()
@@ -131,6 +158,17 @@ func navIconForTitle(title string) fyne.Resource {
 
 func (n *Normal) Tutorials() map[string]adapter.Page {
 	return n.tutorials
+}
+
+func (n *Normal) Refresh() {
+	if n.tree != nil {
+		n.tree.Refresh()
+	}
+}
+
+func MapLegacyTitleToID(title string) (string, bool) {
+	id, ok := legacyTitleToID[title]
+	return id, ok
 }
 
 func (n *Normal) ClearCache() {

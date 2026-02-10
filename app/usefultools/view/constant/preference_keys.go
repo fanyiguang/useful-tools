@@ -7,6 +7,7 @@ const (
 	NavStatePreferenceSaveAesKey   = "saveAesKey"
 	NavStatePreferenceCloseUpgrade = "closeUpgrade"
 	NavStatePreferenceStyle        = "style"
+	NavStatePreferenceLanguage     = "language"
 
 	CacheKeyAesKeyList = "aes-key-list"
 )

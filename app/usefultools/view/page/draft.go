@@ -1,13 +1,13 @@
 package page
 
 import (
-	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/sirupsen/logrus"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
 )
@@ -24,8 +24,9 @@ type Draft struct {
 func NewDraft() *Draft {
 	return &Draft{
 		BasePage: BasePage{
-			Title:      "草稿搭子",
-			Intro:      "不是很正经的草稿纸",
+			ID:         constant.PageIDDraft,
+			TitleKey:   i18n.KeyPageDraftTitle,
+			IntroKey:   i18n.KeyPageDraftIntro,
 			SupportWeb: true,
 		},
 		logics: controller.NewDraft(),
@@ -51,9 +52,9 @@ func (d *Draft) leftScreen(mode constant.ViewMode) fyne.CanvasObject {
 		}
 	} else {
 		initTabItems = []*container.TabItem{
-			d.createLeftCanvasObject("草稿1", "草稿1", ""),
-			d.createLeftCanvasObject("草稿2", "草稿2", ""),
-			d.createLeftCanvasObject("草稿3", "草稿3", ""),
+			d.createLeftCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 1), i18n.Tf(i18n.KeyDraftTabTitle, 1), ""),
+			d.createLeftCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 2), i18n.Tf(i18n.KeyDraftTabTitle, 2), ""),
+			d.createLeftCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 3), i18n.Tf(i18n.KeyDraftTabTitle, 3), ""),
 		}
 		docs = append(docs, initTabItems...)
 	}
@@ -64,7 +65,7 @@ func (d *Draft) leftScreen(mode constant.ViewMode) fyne.CanvasObject {
 	i := len(initTabItems)
 	d.leftTabs.CreateTab = func() *container.TabItem {
 		i++
-		return d.createLeftCanvasObject(fmt.Sprintf("草稿%d", i), fmt.Sprintf("草稿%d", i), "")
+		return d.createLeftCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, i), i18n.Tf(i18n.KeyDraftTabTitle, i), "")
 	}
 	d.leftTabs.OnSelected = func(item *container.TabItem) {
 		logrus.Infof("selected tab: %s", item.Text)
@@ -150,9 +151,9 @@ func (d *Draft) rightScreen(mode constant.ViewMode) fyne.CanvasObject {
 		}
 	} else {
 		initTabItems = []*container.TabItem{
-			d.createRightCanvasObject("草稿1", "草稿1", ""),
-			d.createRightCanvasObject("草稿2", "草稿2", ""),
-			d.createRightCanvasObject("草稿3", "草稿3", ""),
+			d.createRightCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 1), i18n.Tf(i18n.KeyDraftTabTitle, 1), ""),
+			d.createRightCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 2), i18n.Tf(i18n.KeyDraftTabTitle, 2), ""),
+			d.createRightCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 3), i18n.Tf(i18n.KeyDraftTabTitle, 3), ""),
 		}
 		docs = append(docs, initTabItems...)
 	}
@@ -163,7 +164,7 @@ func (d *Draft) rightScreen(mode constant.ViewMode) fyne.CanvasObject {
 	i := len(initTabItems)
 	d.rightTabs.CreateTab = func() *container.TabItem {
 		i++
-		return d.createRightCanvasObject(fmt.Sprintf("草稿%d", i), fmt.Sprintf("草稿%d", i), "")
+		return d.createRightCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, i), i18n.Tf(i18n.KeyDraftTabTitle, i), "")
 	}
 	d.rightTabs.OnSelected = func(item *container.TabItem) {
 		logrus.Infof("selected tab: %s", item.Text)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/model"
 	"useful-tools/app/usefultools/resource"
 	"useful-tools/app/usefultools/view/constant"
@@ -48,6 +49,9 @@ func NewWindow(option model.RunOptions) *Window {
 
 func (w *Window) Run() {
 	w.application = app.NewWithID(w.id)
+	lang := w.application.Preferences().StringWithFallback(constant.NavStatePreferenceLanguage, i18n.LangZhCN)
+	w.application.Preferences().SetString(constant.NavStatePreferenceLanguage, lang)
+	i18n.SetLanguage(lang)
 	w.application.SetIcon(resource.AppLogo)
 	w.window = w.application.NewWindow(w.appTitle())
 	if desk, ok := w.application.(desktop.App); ok {
@@ -74,7 +78,28 @@ func (w *Window) Run() {
 		content.Refresh()
 	}
 
-	w.window.SetMainMenu(w.menu.CreateMenu(w.application, w.window, w.navigation.Tutorials(), setPage, w.ClearCache))
+	var refreshLanguage func()
+	refreshLanguage = func() {
+		lang = w.application.Preferences().StringWithFallback(constant.NavStatePreferenceLanguage, i18n.LangZhCN)
+		i18n.SetLanguage(lang)
+		w.window.SetMainMenu(w.menu.CreateMenu(w.application, w.window, w.navigation.Tutorials(), setPage, w.ClearCache, refreshLanguage))
+		w.navigation.Refresh()
+		if desk, ok := w.application.(desktop.App); ok {
+			desk.SetSystemTrayMenu(w.systray.CreateTrayMenu(w.window))
+		}
+		currentID := w.application.Preferences().StringWithFallback(constant.NavStatePreferenceCurrentPage, constant.PageIDDraft)
+		if _, ok := w.navigation.Tutorials()[currentID]; !ok {
+			if mapped, ok := navication.MapLegacyTitleToID(currentID); ok {
+				currentID = mapped
+				w.application.Preferences().SetString(constant.NavStatePreferenceCurrentPage, currentID)
+			}
+		}
+		if t, ok := w.navigation.Tutorials()[currentID]; ok {
+			setPage(t)
+		}
+	}
+
+	w.window.SetMainMenu(w.menu.CreateMenu(w.application, w.window, w.navigation.Tutorials(), setPage, w.ClearCache, refreshLanguage))
 	w.window.SetMaster()
 
 	headerLeft := viewWidget.MakeCellSize(10, 10)

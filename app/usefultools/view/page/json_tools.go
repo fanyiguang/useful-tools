@@ -4,6 +4,7 @@ import (
 	"strings"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
 
@@ -28,8 +29,9 @@ type JsonTools struct {
 func NewJsonTools() *JsonTools {
 	jsonTools := &JsonTools{
 		BasePage: BasePage{
-			Title:      "JSON工具",
-			Intro:      "JSON格式化、压缩和去除转义工具",
+			ID:         constant.PageIDJsonTools,
+			TitleKey:   i18n.KeyPageJsonTitle,
+			IntroKey:   i18n.KeyPageJsonIntro,
 			SupportWeb: true,
 		},
 		logics: controller.NewJsonTools(),
@@ -64,7 +66,7 @@ func (j *JsonTools) rightScreen(w fyne.Window) fyne.CanvasObject {
 	if j.logics.ViewText() != "" {
 		j.view.SetText(j.logics.ViewText())
 	} else {
-		j.view.PlaceHolder = "处理结果"
+		j.view.PlaceHolder = i18n.T(i18n.KeyJsonResultPlaceholder)
 	}
 	j.view.OnChanged = func(s string) {
 		logrus.Infof("json tools result: %s", s)
@@ -72,7 +74,7 @@ func (j *JsonTools) rightScreen(w fyne.Window) fyne.CanvasObject {
 	}
 
 	box := container.NewGridWithColumns(2, &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -80,7 +82,7 @@ func (j *JsonTools) rightScreen(w fyne.Window) fyne.CanvasObject {
 			j.view.SetText("")
 		},
 	}, &widget.Button{
-		Text:       "复制",
+		Text:       i18n.T(i18n.KeyButtonCopy),
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -93,18 +95,38 @@ func (j *JsonTools) rightScreen(w fyne.Window) fyne.CanvasObject {
 
 func (j *JsonTools) inputSection() fyne.CanvasObject {
 	// 创建操作类型选择器
+	j.operations = j.logics.GetOperations()
 	j.opType = widget.NewSelect(j.operations, func(s string) {
 		logrus.Infof("json tools operation selected: %s", s)
 	})
 	if j.logics.ConversionType() != "" {
-		j.opType.SetSelected(j.logics.ConversionType())
+		selection := j.logics.ConversionType()
+		matched := false
+		switch {
+		case i18n.Matches(i18n.KeyJsonFormat, selection):
+			selection = i18n.T(i18n.KeyJsonFormat)
+			matched = true
+		case i18n.Matches(i18n.KeyJsonMinify, selection):
+			selection = i18n.T(i18n.KeyJsonMinify)
+			matched = true
+		case i18n.Matches(i18n.KeyJsonUnescape, selection):
+			selection = i18n.T(i18n.KeyJsonUnescape)
+			matched = true
+		case i18n.Matches(i18n.KeyJsonEscape, selection):
+			selection = i18n.T(i18n.KeyJsonEscape)
+			matched = true
+		}
+		if !matched {
+			selection = i18n.T(i18n.KeyJsonMinify)
+		}
+		j.opType.SetSelected(selection)
 	} else {
-		j.opType.SetSelected("压缩")
+		j.opType.SetSelected(i18n.T(i18n.KeyJsonMinify))
 	}
 
 	// 创建输入框
 	j.inputEntry = widget.NewMultiLineEntryEx(nil, nil, nil, nil)
-	j.inputEntry.PlaceHolder = "请输入JSON内容"
+	j.inputEntry.PlaceHolder = i18n.T(i18n.KeyJsonInputPlaceholder)
 	j.inputEntry.Wrapping = fyne.TextWrapWord
 	j.inputEntry.Scroll = container.ScrollVerticalOnly
 	j.inputEntry.OnChanged = func(s string) {
@@ -115,7 +137,7 @@ func (j *JsonTools) inputSection() fyne.CanvasObject {
 
 	// 创建处理按钮
 	processBtn := &widget.Button{
-		Text:       "处理",
+		Text:       i18n.T(i18n.KeyButtonProcess),
 		Icon:       theme.Icon(theme.IconNameConfirm),
 		Importance: widget.HighImportance,
 		OnTapped: func() {
@@ -125,7 +147,7 @@ func (j *JsonTools) inputSection() fyne.CanvasObject {
 
 	// 创建清空输入按钮
 	clearInputBtn := &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -136,8 +158,8 @@ func (j *JsonTools) inputSection() fyne.CanvasObject {
 	// 使用StyleForm布局，参考AES转换页面的实现方式
 	form := &widget.StyleForm{
 		Items: []*widget.StyleFormItem{
-			{Text: "操作类型:", Widget: j.opType, HintText: "必选"},
-			{Text: "内容输入:", Widget: j.inputEntry, HintText: "必填"},
+			{Text: i18n.T(i18n.KeyJsonOperationLabel), Widget: j.opType, HintText: i18n.T(i18n.KeyHintSelectRequired)},
+			{Text: i18n.T(i18n.KeyJsonInputLabel), Widget: j.inputEntry, HintText: i18n.T(i18n.KeyHintRequired)},
 		},
 	}
 
@@ -159,7 +181,7 @@ func (j *JsonTools) processJson() {
 
 	result, err := j.logics.ProcessJson(opType, content)
 	if err != nil {
-		j.view.SetText("错误: " + err.Error())
+		j.view.SetText(i18n.T(i18n.KeyErrorPrefix) + err.Error())
 		logrus.Errorf("json process error: %v", err)
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"strings"
 	"useful-tools/app/usefultools/adapter"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/pkg/crypto"
 )
 
@@ -64,18 +65,18 @@ func NewAesConversion() *AesConversion {
 }
 
 func (a *AesConversion) ConversionList() []string {
-	return []string{"解密", "加密"}
+	return []string{i18n.T(i18n.KeyAesDecrypt), i18n.T(i18n.KeyAesEncrypt)}
 }
 
 func (a *AesConversion) DoConversion(mode, key, iv, content string) (string, error) {
 	logrus.Infof("aes conversion mode: %s, key: %s, iv: %s, content: %s", mode, key, iv, content)
-	switch mode {
-	case "解密":
+	switch {
+	case i18n.Matches(i18n.KeyAesDecrypt, mode):
 		return a.Decode(key, iv, content)
-	case "加密":
+	case i18n.Matches(i18n.KeyAesEncrypt, mode):
 		return a.Encode(key, iv, content)
 	}
-	return "", errors.New("转换类型错误")
+	return "", errors.New(i18n.T(i18n.KeyAesConversionTypeError))
 }
 
 func (a *AesConversion) Encode(key, iv, content string) (string, error) {
