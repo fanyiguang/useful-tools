@@ -6,8 +6,18 @@ const (
 	NavStatePreferenceHideBody     = "hideBody"
 	NavStatePreferenceSaveAesKey   = "saveAesKey"
 	NavStatePreferenceCloseUpgrade = "closeUpgrade"
+	NavStatePreferenceStyle        = "style"
+	NavStatePreferenceLanguage     = "language"
+	NavStatePreferenceTextCompare  = "textCompare"
 
 	CacheKeyAesKeyList = "aes-key-list"
+)
+
+const (
+	StyleDefault            = "default"
+	StyleLowSaturationGreen = "low_saturation_green"
+	StyleWarmLuxury         = "warm_luxury"
+	StyleNeutralMinimal     = "neutral_minimal"
 )
 
 func CacheKeys() []string {

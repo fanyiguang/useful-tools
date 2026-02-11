@@ -6,6 +6,7 @@ import (
 	"errors"
 	"strings"
 	"useful-tools/app/usefultools/adapter"
+	"useful-tools/app/usefultools/i18n"
 
 	"github.com/sirupsen/logrus"
 )
@@ -56,7 +57,7 @@ func (j *JsonTools) MinifyJson(data string) (string, error) {
 	var temp interface{}
 	err := json.Unmarshal([]byte(data), &temp)
 	if err != nil {
-		return "", errors.New("无效的JSON格式")
+		return "", errors.New(i18n.T(i18n.KeyJsonInvalidError))
 	}
 
 	// 压缩JSON
@@ -78,7 +79,7 @@ func (j *JsonTools) RemoveEscapes(data string) (string, error) {
 		var temp interface{}
 		err = json.Unmarshal([]byte(data), &temp)
 		if err != nil {
-			return "", errors.New("无法解析为有效的JSON")
+			return "", errors.New(i18n.T(i18n.KeyJsonInvalidError))
 		}
 		// 如果是有效的JSON对象，重新编码并去除转义
 		bytes, err := json.Marshal(temp)
@@ -107,20 +108,20 @@ func (j *JsonTools) ProcessJson(operation, content string) (string, error) {
 	// 移除前后空白
 	content = strings.TrimSpace(content)
 	if content == "" {
-		return "", errors.New("请输入JSON内容")
+		return "", errors.New(i18n.T(i18n.KeyJsonEmptyError))
 	}
 
 	switch operation {
-	case "格式化":
+	case i18n.T(i18n.KeyJsonFormat):
 		return j.FormatJson(content), nil
-	case "压缩":
+	case i18n.T(i18n.KeyJsonMinify):
 		return j.MinifyJson(content)
-	case "去除转义":
+	case i18n.T(i18n.KeyJsonUnescape):
 		return j.RemoveEscapes(content)
-	case "增加转义":
+	case i18n.T(i18n.KeyJsonEscape):
 		return j.AddEscapes(content)
 	default:
-		return "", errors.New("不支持的操作类型")
+		return "", errors.New(i18n.T(i18n.KeyJsonUnsupportedOperationError))
 	}
 }
 
@@ -137,7 +138,7 @@ func (j *JsonTools) AddEscapes(data string) (string, error) {
 
 // GetOperations 获取支持的操作列表
 func (j *JsonTools) GetOperations() []string {
-	return []string{"格式化", "压缩", "去除转义", "增加转义"}
+	return []string{i18n.T(i18n.KeyJsonFormat), i18n.T(i18n.KeyJsonMinify), i18n.T(i18n.KeyJsonUnescape), i18n.T(i18n.KeyJsonEscape)}
 }
 
 func (a *JsonTools) ConversionType() string {

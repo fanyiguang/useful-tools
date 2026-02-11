@@ -6,6 +6,7 @@ import (
 	sysNet "net"
 	"strings"
 	"useful-tools/app/usefultools/adapter"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/model"
 	"useful-tools/helper/net"
 	"useful-tools/helper/str"
@@ -88,10 +89,10 @@ func (p *PortCheck) GetInterfaceList() []string {
 	ips, err := sys.GetInternalIps()
 	if err != nil {
 		logrus.Warnf("get internal ips error: %v", err)
-		return []string{"自动"}
+		return []string{i18n.T(i18n.KeyAuto)}
 	}
 
-	return append([]string{"自动"}, ips...)
+	return append([]string{i18n.T(i18n.KeyAuto)}, ips...)
 }
 
 func (p *PortCheck) NormalDial(network, iFace, targetIp, targetPort string) (isSuccess bool, err error) {
@@ -99,13 +100,13 @@ func (p *PortCheck) NormalDial(network, iFace, targetIp, targetPort string) (isS
 	trimInfo := str.TrimStringSpace(network, iFace, targetIp, targetPort)
 	switch trimInfo[0] {
 	case "TCP":
-		if trimInfo[1] == "自动" {
+		if i18n.Matches(i18n.KeyAuto, trimInfo[1]) {
 			isSuccess, err = p.Dial(trimInfo[0], trimInfo[2], trimInfo[3])
 		} else {
 			isSuccess, err = net.DialTcpByIFace(trimInfo[2], trimInfo[3], trimInfo[1])
 		}
 	case "UDP":
-		if trimInfo[1] == "自动" {
+		if i18n.Matches(i18n.KeyAuto, trimInfo[1]) {
 			isSuccess, err = p.Dial(trimInfo[0], trimInfo[2], trimInfo[3])
 		} else {
 			isSuccess, err = net.DialUdpByIFace(trimInfo[2], trimInfo[3], trimInfo[1])

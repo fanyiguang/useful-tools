@@ -1,15 +1,18 @@
 package page
 
 import (
-	"fmt"
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/sirupsen/logrus"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
+	"github.com/pmezard/go-difflib/difflib"
+	"fyne.io/fyne/v2/theme"
+	"strings"
 )
 
 var _ adapter.Page = (*Draft)(nil)
@@ -24,8 +27,9 @@ type Draft struct {
 func NewDraft() *Draft {
 	return &Draft{
 		BasePage: BasePage{
-			Title:      "草稿搭子",
-			Intro:      "不是很正经的草稿纸",
+			ID:         constant.PageIDDraft,
+			TitleKey:   i18n.KeyPageDraftTitle,
+			IntroKey:   i18n.KeyPageDraftIntro,
 			SupportWeb: true,
 		},
 		logics: controller.NewDraft(),
@@ -33,7 +37,28 @@ func NewDraft() *Draft {
 }
 
 func (d *Draft) Screen(w fyne.Window, mode constant.ViewMode) fyne.CanvasObject {
-	return container.NewHSplit(d.leftScreen(mode), d.rightScreen(mode))
+	var leftIdx, rightIdx int
+	if d.leftTabs != nil {
+		leftIdx = d.leftTabs.SelectedIndex()
+	}
+	if d.rightTabs != nil {
+		rightIdx = d.rightTabs.SelectedIndex()
+	}
+
+	split := container.NewHSplit(d.leftScreen(mode), d.rightScreen(mode))
+
+	if d.leftTabs != nil && leftIdx < len(d.leftTabs.Items) {
+		d.leftTabs.SelectIndex(leftIdx)
+	}
+	if d.rightTabs != nil && rightIdx < len(d.rightTabs.Items) {
+		d.rightTabs.SelectIndex(rightIdx)
+	}
+
+	if fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceTextCompare) {
+		d.updateDiffViews()
+	}
+
+	return split
 }
 
 func (d *Draft) leftScreen(mode constant.ViewMode) fyne.CanvasObject {
@@ -51,9 +76,9 @@ func (d *Draft) leftScreen(mode constant.ViewMode) fyne.CanvasObject {
 		}
 	} else {
 		initTabItems = []*container.TabItem{
-			d.createLeftCanvasObject("草稿1", "草稿1", ""),
-			d.createLeftCanvasObject("草稿2", "草稿2", ""),
-			d.createLeftCanvasObject("草稿3", "草稿3", ""),
+			d.createLeftCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 1), i18n.Tf(i18n.KeyDraftTabTitle, 1), ""),
+			d.createLeftCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 2), i18n.Tf(i18n.KeyDraftTabTitle, 2), ""),
+			d.createLeftCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 3), i18n.Tf(i18n.KeyDraftTabTitle, 3), ""),
 		}
 		docs = append(docs, initTabItems...)
 	}
@@ -64,10 +89,11 @@ func (d *Draft) leftScreen(mode constant.ViewMode) fyne.CanvasObject {
 	i := len(initTabItems)
 	d.leftTabs.CreateTab = func() *container.TabItem {
 		i++
-		return d.createLeftCanvasObject(fmt.Sprintf("草稿%d", i), fmt.Sprintf("草稿%d", i), "")
+		return d.createLeftCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, i), i18n.Tf(i18n.KeyDraftTabTitle, i), "")
 	}
 	d.leftTabs.OnSelected = func(item *container.TabItem) {
 		logrus.Infof("selected tab: %s", item.Text)
+		d.updateDiffViews()
 	}
 	return container.NewBorder(top, bottom, left, right, d.leftTabs)
 }
@@ -98,6 +124,7 @@ func (d *Draft) createLeftCanvasObject(title, placeHolder, text string) *contain
 	leftMultiEntry.OnChanged = func(s string) {
 		logrus.Infof("left draft doc[%s] content: %s", title, s)
 		d.logics.AddLeftDocs(title, s, placeHolder)
+		d.updateDiffViews()
 	}
 	leftMultiEntry.Wrapping = fyne.TextWrapWord
 	d.logics.AddLeftDocs(title, text, placeHolder)
@@ -129,6 +156,7 @@ func (d *Draft) createRightCanvasObject(title, placeHolder, text string) *contai
 	rightMultiEntry.OnChanged = func(s string) {
 		logrus.Infof("right draft doc[%s] content: %s", title, s)
 		d.logics.AddRightDocs(title, s, placeHolder)
+		d.updateDiffViews()
 	}
 	rightMultiEntry.Wrapping = fyne.TextWrapWord
 	d.logics.AddRightDocs(title, text, placeHolder)
@@ -150,9 +178,9 @@ func (d *Draft) rightScreen(mode constant.ViewMode) fyne.CanvasObject {
 		}
 	} else {
 		initTabItems = []*container.TabItem{
-			d.createRightCanvasObject("草稿1", "草稿1", ""),
-			d.createRightCanvasObject("草稿2", "草稿2", ""),
-			d.createRightCanvasObject("草稿3", "草稿3", ""),
+			d.createRightCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 1), i18n.Tf(i18n.KeyDraftTabTitle, 1), ""),
+			d.createRightCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 2), i18n.Tf(i18n.KeyDraftTabTitle, 2), ""),
+			d.createRightCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, 3), i18n.Tf(i18n.KeyDraftTabTitle, 3), ""),
 		}
 		docs = append(docs, initTabItems...)
 	}
@@ -163,14 +191,127 @@ func (d *Draft) rightScreen(mode constant.ViewMode) fyne.CanvasObject {
 	i := len(initTabItems)
 	d.rightTabs.CreateTab = func() *container.TabItem {
 		i++
-		return d.createRightCanvasObject(fmt.Sprintf("草稿%d", i), fmt.Sprintf("草稿%d", i), "")
+		return d.createRightCanvasObject(i18n.Tf(i18n.KeyDraftTabTitle, i), i18n.Tf(i18n.KeyDraftTabTitle, i), "")
 	}
 	d.rightTabs.OnSelected = func(item *container.TabItem) {
 		logrus.Infof("selected tab: %s", item.Text)
+		d.updateDiffViews()
 	}
 	return container.NewBorder(top, bottom, left, right, d.rightTabs)
 }
 
 func (d *Draft) ClearCache() {
 	d.logics.ClearCache()
+}
+
+func (d *Draft) updateDiffViews() {
+	if !fyne.CurrentApp().Preferences().Bool(constant.NavStatePreferenceTextCompare) {
+		return
+	}
+	if d.leftTabs == nil || d.rightTabs == nil {
+		return
+	}
+
+	d.updateTabDiff(d.leftTabs.Selected(), true)
+	d.updateTabDiff(d.rightTabs.Selected(), false)
+
+	d.leftTabs.Refresh()
+	d.rightTabs.Refresh()
+}
+
+func (d *Draft) updateTabDiff(item *container.TabItem, isLeft bool) {
+	if item == nil {
+		return
+	}
+
+	leftItem := d.leftTabs.Selected()
+	rightItem := d.rightTabs.Selected()
+	if leftItem == nil || rightItem == nil {
+		return
+	}
+
+	leftDoc, _ := d.logics.GetLeftDoc(leftItem.Text)
+	rightDoc, _ := d.logics.GetRightDoc(rightItem.Text)
+
+	diffView := d.createDiffView(leftDoc.Content, rightDoc.Content, isLeft)
+
+	if split, ok := item.Content.(*container.Split); ok {
+		split.Trailing = diffView
+		split.Refresh()
+	} else {
+		// First time entering compare mode or switching tabs
+		entry := item.Content
+		split := container.NewHSplit(entry, diffView)
+		item.Content = split
+		item.Content.Refresh()
+	}
+}
+
+func (d *Draft) createDiffView(text1, text2 string, isLeft bool) fyne.CanvasObject {
+	diff := difflib.NewMatcher(difflib.SplitLines(text1), difflib.SplitLines(text2))
+	opcodes := diff.GetOpCodes()
+
+	var segments []widget.RichTextSegment
+
+	for _, op := range opcodes {
+		switch op.Tag {
+		case 'e':
+			// Equal
+			str := strings.Join(difflib.SplitLines(text1)[op.I1:op.I2], "")
+			segments = append(segments, &widget.TextSegment{
+				Text: str,
+				Style: widget.RichTextStyle{
+					Inline: true,
+				},
+			})
+		case 'd':
+			// Delete
+			if isLeft {
+				str := strings.Join(difflib.SplitLines(text1)[op.I1:op.I2], "")
+				segments = append(segments, &widget.TextSegment{
+					Text: str,
+					Style: widget.RichTextStyle{
+						Inline:    true,
+						ColorName: theme.ColorNameError,
+					},
+				})
+			}
+		case 'i':
+			// Insert
+			if !isLeft {
+				str := strings.Join(difflib.SplitLines(text2)[op.J1:op.J2], "")
+				segments = append(segments, &widget.TextSegment{
+					Text: str,
+					Style: widget.RichTextStyle{
+						Inline:    true,
+						ColorName: theme.ColorNameSuccess,
+					},
+				})
+			}
+		case 'r':
+			// Replace
+			if isLeft {
+				str := strings.Join(difflib.SplitLines(text1)[op.I1:op.I2], "")
+				segments = append(segments, &widget.TextSegment{
+					Text: str,
+					Style: widget.RichTextStyle{
+						Inline:    true,
+						ColorName: theme.ColorNameError,
+					},
+				})
+			} else {
+				str := strings.Join(difflib.SplitLines(text2)[op.J1:op.J2], "")
+				segments = append(segments, &widget.TextSegment{
+					Text: str,
+					Style: widget.RichTextStyle{
+						Inline:    true,
+						ColorName: theme.ColorNameSuccess,
+					},
+				})
+			}
+		}
+	}
+	r := widget.NewRichText(segments...)
+	r.Wrapping = fyne.TextWrapBreak
+	return container.NewVScroll(r)
 }
