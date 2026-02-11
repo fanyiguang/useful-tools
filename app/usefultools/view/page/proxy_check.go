@@ -149,7 +149,7 @@ func (p *ProxyCheck) rightProxyCheck(w fyne.Window) fyne.CanvasObject {
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("proxy check view check copy: %s", p.view.Text)
-			w.Clipboard().SetContent(strings.TrimSpace(p.view.Text))
+			viewWidget.CopyToClipboard(w, p.view.Text)
 		},
 	})
 	p.scroll = container.NewVScroll(p.view)

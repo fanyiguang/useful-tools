@@ -47,7 +47,8 @@ var translations = map[string]map[Key]string{
 		KeyHintOptional:       "选填",
 		KeyHintSelectRequired: "必选",
 
-		KeyErrorPrefix: "错误: ",
+		KeyErrorPrefix:             "错误: ",
+		KeyNotificationCopySuccess: "复制成功",
 
 		KeyAuto:    "自动",
 		KeyDefault: "默认",
@@ -177,7 +178,8 @@ var translations = map[string]map[Key]string{
 		KeyHintOptional:       "Optional",
 		KeyHintSelectRequired: "Required",
 
-		KeyErrorPrefix: "Error: ",
+		KeyErrorPrefix:             "Error: ",
+		KeyNotificationCopySuccess: "Copied",
 
 		KeyAuto:    "Auto",
 		KeyDefault: "Default",

@@ -1,9 +1,12 @@
 package widget
 
 import (
+	"image/color"
+	"strings"
+	"useful-tools/app/usefultools/i18n"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
-	"image/color"
 )
 
 func shortcutFocused(s fyne.Shortcut, w fyne.Window) {
@@ -30,4 +33,18 @@ func MakeCellSize(w, h float32) fyne.CanvasObject {
 	rect := canvas.NewRectangle(&color.Transparent)
 	rect.SetMinSize(fyne.NewSize(w, h))
 	return rect
+}
+
+func CopyToClipboard(w fyne.Window, content string) {
+	trimmed := strings.TrimSpace(content)
+	if trimmed == "" {
+		return
+	}
+	w.Clipboard().SetContent(trimmed)
+	if app := fyne.CurrentApp(); app != nil {
+		app.SendNotification(&fyne.Notification{
+			Title:   "useful-tools",
+			Content: i18n.T(i18n.KeyNotificationCopySuccess),
+		})
+	}
 }

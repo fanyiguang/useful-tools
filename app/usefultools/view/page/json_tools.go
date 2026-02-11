@@ -1,7 +1,6 @@
 package page
 
 import (
-	"strings"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/i18n"
@@ -87,7 +86,7 @@ func (j *JsonTools) rightScreen(w fyne.Window) fyne.CanvasObject {
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("json tools view copy")
-			w.Clipboard().SetContent(strings.TrimSpace(j.view.Text))
+			viewWidget.CopyToClipboard(w, j.view.Text)
 		},
 	})
 	return container.NewBorder(top, bottom, left, right, container.NewBorder(nil, box, nil, nil, j.view))

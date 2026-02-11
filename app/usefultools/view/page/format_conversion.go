@@ -1,7 +1,6 @@
 package page
 
 import (
-	"strings"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/i18n"
@@ -87,7 +86,7 @@ func (f *FormatConversion) rightScreen(w fyne.Window) fyne.CanvasObject {
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("format conversion view copy")
-			w.Clipboard().SetContent(strings.TrimSpace(f.view.Text))
+			viewWidget.CopyToClipboard(w, f.view.Text)
 		},
 	})
 	return container.NewBorder(top, bottom, left, right, container.NewBorder(nil, box, nil, nil, f.view))
@@ -99,7 +98,7 @@ func (f *FormatConversion) inputSection() fyne.CanvasObject {
 	f.targetFormat = widget.NewSelect(f.formats, func(s string) {
 		logrus.Infof("format conversion target selected: %s", s)
 	})
-	
+
 	if f.logics.TargetFormat() != "" {
 		f.targetFormat.SetSelected(f.logics.TargetFormat())
 	} else {
