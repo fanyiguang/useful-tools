@@ -14,6 +14,7 @@ import (
 	"time"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
 	"useful-tools/helper/Go"
@@ -32,8 +33,9 @@ type DnsQuery struct {
 func NewDnsQuery() *DnsQuery {
 	return &DnsQuery{
 		BasePage: BasePage{
-			Title:      "DNS查询",
-			Intro:      "一个简单的DNS查询",
+			ID:         constant.PageIDDnsQuery,
+			TitleKey:   i18n.KeyPageDnsTitle,
+			IntroKey:   i18n.KeyPageDnsIntro,
 			SupportWeb: true,
 		},
 		logics: controller.NewDnsQuery(),
@@ -77,7 +79,7 @@ func (d *DnsQuery) proView() fyne.CanvasObject {
 	}
 
 	box := container.NewGridWithColumns(2, &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -85,7 +87,7 @@ func (d *DnsQuery) proView() fyne.CanvasObject {
 			multi.SetText("")
 		},
 	}, &widget.Button{
-		Text:       "检测",
+		Text:       i18n.T(i18n.KeyButtonCheck),
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -123,7 +125,7 @@ func (d *DnsQuery) rightScreen(w fyne.Window) fyne.CanvasObject {
 	if d.logics.ViewText() != "" {
 		d.view.SetText(d.logics.ViewText())
 	} else {
-		d.view.PlaceHolder = "检测结果"
+		d.view.PlaceHolder = i18n.T(i18n.KeyDnsResultPlaceholder)
 	}
 	d.view.OnChanged = func(s string) {
 		logrus.Infof("dns query result: %s", s)
@@ -132,7 +134,7 @@ func (d *DnsQuery) rightScreen(w fyne.Window) fyne.CanvasObject {
 	//view.Disable()
 
 	box := container.NewGridWithColumns(2, &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -140,12 +142,12 @@ func (d *DnsQuery) rightScreen(w fyne.Window) fyne.CanvasObject {
 			d.view.SetText("")
 		},
 	}, &widget.Button{
-		Text:       "复制",
+		Text:       i18n.T(i18n.KeyButtonCopy),
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("dns query view check copy: %s", d.view.Text)
-			w.Clipboard().SetContent(strings.TrimSpace(d.view.Text))
+			viewWidget.CopyToClipboard(w, d.view.Text)
 		},
 	})
 	d.scroll = container.NewVScroll(d.view)
@@ -155,11 +157,12 @@ func (d *DnsQuery) rightScreen(w fyne.Window) fyne.CanvasObject {
 
 func (d *DnsQuery) from() fyne.CanvasObject {
 	host := widget.NewEntry()
-	host.SetPlaceHolder("DNS地址")
-	if d.logics.Host() == "" {
-		host.SetText("默认")
+	host.SetPlaceHolder(i18n.T(i18n.KeyDnsHostPlaceholder))
+	hostValue := d.logics.Host()
+	if hostValue == "" || i18n.Matches(i18n.KeyDefault, hostValue) {
+		host.SetText(i18n.T(i18n.KeyDefault))
 	} else {
-		host.SetText(d.logics.Host())
+		host.SetText(hostValue)
 	}
 	host.OnChanged = func(s string) {
 		logrus.Infof("dns query host: %s", s)
@@ -168,7 +171,7 @@ func (d *DnsQuery) from() fyne.CanvasObject {
 	}
 
 	domain := widget.NewEntry()
-	domain.SetPlaceHolder("解析域名")
+	domain.SetPlaceHolder(i18n.T(i18n.KeyDnsDomainPlaceholder))
 	domain.SetText(d.logics.Domain())
 	domain.OnChanged = func(s string) {
 		logrus.Infof("dns query domain: %s", s)
@@ -181,7 +184,7 @@ func (d *DnsQuery) from() fyne.CanvasObject {
 			return nil
 		}
 		if !strings.Contains(s, ".") {
-			return errors.New("域名格式错误！")
+			return errors.New(i18n.T(i18n.KeyDnsInvalidDomainError))
 		}
 		return nil
 	})
@@ -189,8 +192,8 @@ func (d *DnsQuery) from() fyne.CanvasObject {
 	var form *widget.StyleForm
 	form = &widget.StyleForm{
 		Items: []*widget.StyleFormItem{
-			{Text: "DNS地址:", Widget: host, HintText: "必填"},
-			{Text: "解析域名:", Widget: domain, HintText: "必填"},
+			{Text: i18n.T(i18n.KeyDnsHostLabel), Widget: host, HintText: i18n.T(i18n.KeyHintRequired)},
+			{Text: i18n.T(i18n.KeyDnsDomainLabel), Widget: domain, HintText: i18n.T(i18n.KeyHintRequired)},
 		},
 		OnCancel: func() {
 			logrus.Infof("dns query page cancelled")
@@ -215,8 +218,8 @@ func (d *DnsQuery) from() fyne.CanvasObject {
 				}
 			}()
 		},
-		SubmitText: "检测",
-		CancelText: "清空",
+		SubmitText: i18n.T(i18n.KeyButtonCheck),
+		CancelText: i18n.T(i18n.KeyButtonClear),
 		ButtonLayout: func(cancel *widget.Button, submit *widget.Button) *fyne.Container {
 			return container.NewGridWithColumns(2, cancel, submit)
 		},

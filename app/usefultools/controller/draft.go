@@ -26,6 +26,14 @@ func (d *Draft) RightDocs() []model.Doc {
 	return d.rightDocs.Values()
 }
 
+func (d *Draft) GetLeftDoc(title string) (model.Doc, bool) {
+	return d.leftDocs.Get(title)
+}
+
+func (d *Draft) GetRightDoc(title string) (model.Doc, bool) {
+	return d.rightDocs.Get(title)
+}
+
 func (d *Draft) AddLeftDocs(title, content, placeHolder string) {
 	d.leftDocs.Put(title, model.Doc{
 		Title:       title,

@@ -1,5 +1,7 @@
 package controller
 
+import "useful-tools/app/usefultools/i18n"
+
 func ProProxyCheckTemplate() string {
 	return "{\n" +
 		"    \"proxy\": {\n" +
@@ -31,7 +33,7 @@ func ProProxyCheckTemplate() string {
 
 func ProPortCheckTemplate() string {
 	return "{\n" +
-		"    \"local_ip\": \"自动\",\n" +
+		"    \"local_ip\": \"" + i18n.T(i18n.KeyAuto) + "\",\n" +
 		"    \"network\": \"tcp\",\n" +
 		"    \"host\": \"\",\n" +
 		"    \"port\": \"\"\n" +

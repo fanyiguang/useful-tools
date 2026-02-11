@@ -9,9 +9,9 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/sirupsen/logrus"
-	"strings"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/preferencekey"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
@@ -31,8 +31,9 @@ type AesConversion struct {
 func NewAesConversion() *AesConversion {
 	return &AesConversion{
 		BasePage: BasePage{
-			Title:      "AES转换",
-			Intro:      "加密，解密，解密，加密",
+			ID:         constant.PageIDAesConvert,
+			TitleKey:   i18n.KeyPageAesTitle,
+			IntroKey:   i18n.KeyPageAesIntro,
 			SupportWeb: true,
 		},
 		logics:     controller.NewAesConversion(),
@@ -67,7 +68,7 @@ func (a *AesConversion) rightScreen(w fyne.Window) fyne.CanvasObject {
 	if a.logics.ViewText() != "" {
 		a.view.SetText(a.logics.ViewText())
 	} else {
-		a.view.PlaceHolder = "解析结果"
+		a.view.PlaceHolder = i18n.T(i18n.KeyAesResultPlaceholder)
 	}
 	a.view.OnChanged = func(s string) {
 		logrus.Infof("aes conversion result: %s", s)
@@ -75,7 +76,7 @@ func (a *AesConversion) rightScreen(w fyne.Window) fyne.CanvasObject {
 	}
 
 	box := container.NewGridWithColumns(2, &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -83,12 +84,12 @@ func (a *AesConversion) rightScreen(w fyne.Window) fyne.CanvasObject {
 			a.view.SetText("")
 		},
 	}, &widget.Button{
-		Text:       "复制",
+		Text:       i18n.T(i18n.KeyButtonCopy),
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("aes conversion view check copy: %s", a.view.Text)
-			w.Clipboard().SetContent(strings.TrimSpace(a.view.Text))
+			viewWidget.CopyToClipboard(w, a.view.Text)
 		},
 	})
 	return container.NewBorder(top, bottom, left, right, container.NewBorder(nil, box, nil, nil, a.view))
@@ -103,13 +104,26 @@ func (a *AesConversion) from() fyne.CanvasObject {
 
 	conversionSelect := widget.NewSelect(a.logics.ConversionList(), func(s string) {})
 	if a.logics.ConversionType() != "" {
-		conversionSelect.SetSelected(a.logics.ConversionType())
+		selection := a.logics.ConversionType()
+		matched := false
+		switch {
+		case i18n.Matches(i18n.KeyAesDecrypt, selection):
+			selection = i18n.T(i18n.KeyAesDecrypt)
+			matched = true
+		case i18n.Matches(i18n.KeyAesEncrypt, selection):
+			selection = i18n.T(i18n.KeyAesEncrypt)
+			matched = true
+		}
+		if !matched {
+			selection = i18n.T(i18n.KeyAesDecrypt)
+		}
+		conversionSelect.SetSelected(selection)
 	} else {
-		conversionSelect.SetSelected("解密")
+		conversionSelect.SetSelected(i18n.T(i18n.KeyAesDecrypt))
 	}
 
 	aesKey := widget.NewPasswordEntry()
-	aesKey.SetPlaceHolder("AES KEY")
+	aesKey.SetPlaceHolder(i18n.T(i18n.KeyAesKeyLabel))
 	aesKey.SetText(a.logics.AesKey())
 	aesKey.OnChanged = func(s string) {
 		logrus.Infof("aes conversion aes key: %s", s)
@@ -118,7 +132,7 @@ func (a *AesConversion) from() fyne.CanvasObject {
 	}
 
 	aesIV := widget.NewPasswordEntry()
-	aesIV.SetPlaceHolder("AES IV")
+	aesIV.SetPlaceHolder(i18n.T(i18n.KeyAesIvLabel))
 	aesIV.SetText(a.logics.AesIv())
 	aesIV.OnChanged = func(s string) {
 		logrus.Infof("aes conversion aesIV: %s", s)
@@ -138,12 +152,12 @@ func (a *AesConversion) from() fyne.CanvasObject {
 	if len(keyNames) > 0 {
 		keyGroupSelect.SetText(keyNames[0])
 	} else {
-		keyGroupSelect.SetPlaceHolder("可以设置密钥名称后保存")
+		keyGroupSelect.SetPlaceHolder(i18n.T(i18n.KeyAesKeyGroupPlaceholder))
 	}
 
 	data := widget.NewMultiLineEntry()
 	data.Wrapping = fyne.TextWrapWord
-	data.SetPlaceHolder("参数")
+	data.SetPlaceHolder(i18n.T(i18n.KeyAesDataPlaceholder))
 	data.SetText(a.logics.Data())
 	data.OnChanged = func(s string) {
 		logrus.Infof("aes conversion data: %s", s)
@@ -154,7 +168,7 @@ func (a *AesConversion) from() fyne.CanvasObject {
 	data.Validator = validation.NewAllStrings(func(s string) error {
 		logrus.Infof("aes conversion data: %s", s)
 		if s == "" {
-			return errors.New("参数不可为空")
+			return errors.New(i18n.T(i18n.KeyAesParamRequiredError))
 		}
 		return nil
 	})
@@ -162,11 +176,11 @@ func (a *AesConversion) from() fyne.CanvasObject {
 	var form *widget.StyleForm
 	form = &widget.StyleForm{
 		Items: []*widget.StyleFormItem{
-			{Text: "转换类型:", Widget: conversionSelect, HintText: "必选"},
-			{Text: "密钥名称:", Widget: keyGroupSelect, HintText: "选填"},
-			{Text: "AES KEY:", Widget: aesKey, HintText: "必填"},
-			{Text: "AES IV:", Widget: aesIV, HintText: "必填"},
-			{Text: "参数:", Widget: data, HintText: "必填"},
+			{Text: i18n.T(i18n.KeyAesConversionTypeLabel), Widget: conversionSelect, HintText: i18n.T(i18n.KeyHintSelectRequired)},
+			{Text: i18n.T(i18n.KeyAesKeyNameLabel), Widget: keyGroupSelect, HintText: i18n.T(i18n.KeyHintOptional)},
+			{Text: i18n.T(i18n.KeyAesKeyLabel), Widget: aesKey, HintText: i18n.T(i18n.KeyHintRequired)},
+			{Text: i18n.T(i18n.KeyAesIvLabel), Widget: aesIV, HintText: i18n.T(i18n.KeyHintRequired)},
+			{Text: i18n.T(i18n.KeyAesParamLabel), Widget: data, HintText: i18n.T(i18n.KeyHintRequired)},
 		},
 		OnCancel: func() {
 			logrus.Infof("aes conversion page cancelled")
@@ -199,7 +213,7 @@ func (a *AesConversion) from() fyne.CanvasObject {
 			}
 		},
 		SubmitText: conversionSelect.Selected,
-		CancelText: "清空",
+		CancelText: i18n.T(i18n.KeyButtonClear),
 		ButtonLayout: func(cancel *widget.Button, submit *widget.Button) *fyne.Container {
 			return container.NewGridWithColumns(2, cancel, submit)
 		},

@@ -6,4 +6,5 @@ type Navigation interface {
 	CreateNavigation(setPage func(page Page), loadPrevious bool) fyne.CanvasObject
 	Tutorials() map[string]Page
 	ClearCache()
+	Refresh()
 }

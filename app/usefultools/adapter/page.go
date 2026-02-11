@@ -11,4 +11,5 @@ type Page interface {
 	GetSupportWeb() bool
 	GetIntro() string
 	GetTitle() string
+	GetID() string
 }

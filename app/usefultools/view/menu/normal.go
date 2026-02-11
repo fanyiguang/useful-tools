@@ -1,12 +1,15 @@
 package menu
 
 import (
+	"net/url"
+	"useful-tools/app/usefultools/adapter"
+	"useful-tools/app/usefultools/i18n"
+	"useful-tools/app/usefultools/view/constant"
+	"useful-tools/app/usefultools/view/style"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"github.com/sirupsen/logrus"
-	"net/url"
-	"useful-tools/app/usefultools/adapter"
-	"useful-tools/app/usefultools/view/constant"
 )
 
 var _ adapter.Menu = (*Normal)(nil)
@@ -18,7 +21,7 @@ func NewNormal() *Normal {
 	return &Normal{}
 }
 
-func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adapter.Page, setPage func(adapter.Page), clearCacheFn func()) *fyne.MainMenu {
+func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adapter.Page, setPage func(adapter.Page), clearCacheFn func(), onLanguageChange func()) *fyne.MainMenu {
 	var main *fyne.MainMenu
 	checkedFn := func(item *fyne.MenuItem, extendFn func(*fyne.MenuItem)) {
 		extendFn(item)
@@ -26,18 +29,18 @@ func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adap
 		main.Refresh()
 	}
 
-	clearCache := fyne.NewMenuItem("清除所有缓存", func() {
+	clearCache := fyne.NewMenuItem(i18n.T(i18n.KeyMenuClearCache), func() {
 		logrus.Infof("clear cache")
 
-		cnf := dialog.NewConfirm("清除所有缓存", "请问您要清理所有缓存吗?", m.confirmClearCacheCallback(clearCacheFn), w)
-		cnf.SetDismissText("否")
-		cnf.SetConfirmText("是")
+		cnf := dialog.NewConfirm(i18n.T(i18n.KeyDialogClearCacheTitle), i18n.T(i18n.KeyDialogClearCacheMessage), m.confirmClearCacheCallback(clearCacheFn), w)
+		cnf.SetDismissText(i18n.T(i18n.KeyDialogNo))
+		cnf.SetConfirmText(i18n.T(i18n.KeyDialogYes))
 		cnf.Show()
 	})
 
-	file := fyne.NewMenu("文件", clearCache)
+	file := fyne.NewMenu(i18n.T(i18n.KeyMenuFile), clearCache)
 
-	majorItem := fyne.NewMenuItem("专业模式", nil)
+	majorItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuProMode), nil)
 	majorItem.Action = func() {
 		checkedFn(majorItem, func(item *fyne.MenuItem) {
 			if item.Checked {
@@ -51,9 +54,9 @@ func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adap
 		})
 	}
 	majorItem.Checked = a.Preferences().Int(constant.NavStatePreferenceProMode) == 1
-	mode := fyne.NewMenu("模式", majorItem)
+	mode := fyne.NewMenu(i18n.T(i18n.KeyMenuMode), majorItem)
 
-	hideBodyItem := fyne.NewMenuItem("隐藏响应体", nil)
+	hideBodyItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuHideBody), nil)
 	hideBodyItem.Action = func() {
 		checkedFn(hideBodyItem, func(item *fyne.MenuItem) {
 			if item.Checked {
@@ -64,9 +67,67 @@ func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adap
 		})
 	}
 	hideBodyItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceHideBody)
-	view := fyne.NewMenu("视图", hideBodyItem)
+	styleKey := a.Preferences().String(constant.NavStatePreferenceStyle)
+	if styleKey == "" {
+		styleKey = constant.StyleDefault
+		a.Preferences().SetString(constant.NavStatePreferenceStyle, styleKey)
+	}
+	style.Apply(a, styleKey)
 
-	saveAesItem := fyne.NewMenuItem("保存AES密钥", nil)
+	defaultStyleItem := fyne.NewMenuItem(i18n.T(i18n.KeyStyleDefault), nil)
+	lowGreenStyleItem := fyne.NewMenuItem(i18n.T(i18n.KeyStyleLowSaturationGreen), nil)
+	warmLuxuryStyleItem := fyne.NewMenuItem(i18n.T(i18n.KeyStyleWarmLuxury), nil)
+	neutralMinimalStyleItem := fyne.NewMenuItem(i18n.T(i18n.KeyStyleNeutralMinimal), nil)
+	setStyleChecked := func(key string) {
+		defaultStyleItem.Checked = key == constant.StyleDefault
+		lowGreenStyleItem.Checked = key == constant.StyleLowSaturationGreen
+		warmLuxuryStyleItem.Checked = key == constant.StyleWarmLuxury
+		neutralMinimalStyleItem.Checked = key == constant.StyleNeutralMinimal
+	}
+	applyStyle := func(key string) {
+		a.Preferences().SetString(constant.NavStatePreferenceStyle, key)
+		style.Apply(a, key)
+		setStyleChecked(key)
+		main.Refresh()
+	}
+	defaultStyleItem.Action = func() {
+		applyStyle(constant.StyleDefault)
+	}
+	lowGreenStyleItem.Action = func() {
+		applyStyle(constant.StyleLowSaturationGreen)
+	}
+	warmLuxuryStyleItem.Action = func() {
+		applyStyle(constant.StyleWarmLuxury)
+	}
+	neutralMinimalStyleItem.Action = func() {
+		applyStyle(constant.StyleNeutralMinimal)
+	}
+	setStyleChecked(styleKey)
+
+	styleMenu := fyne.NewMenu(i18n.T(i18n.KeyMenuStyle), defaultStyleItem, lowGreenStyleItem, warmLuxuryStyleItem, neutralMinimalStyleItem)
+	styleItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuStyle), nil)
+	styleItem.ChildMenu = styleMenu
+	view := fyne.NewMenu(i18n.T(i18n.KeyMenuView), hideBodyItem, styleItem)
+
+	textCompareItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuTextCompare), nil)
+	textCompareItem.Action = func() {
+		checkedFn(textCompareItem, func(item *fyne.MenuItem) {
+			if item.Checked {
+				a.Preferences().SetBool(constant.NavStatePreferenceTextCompare, false)
+			} else {
+				a.Preferences().SetBool(constant.NavStatePreferenceTextCompare, true)
+			}
+			if t, ok := tutorials[fyne.CurrentApp().Preferences().String(constant.NavStatePreferenceCurrentPage)]; ok {
+				if t.GetID() == constant.PageIDDraft {
+					setPage(t)
+				}
+			}
+		})
+	}
+	textCompareItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceTextCompare)
+	// function := fyne.NewMenu(i18n.T(i18n.KeyMenuFunction), textCompareItem)
+
+	saveAesItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuSaveAesKey), nil)
 	saveAesItem.Action = func() {
 		checkedFn(saveAesItem, func(item *fyne.MenuItem) {
 			if item.Checked {
@@ -77,7 +138,7 @@ func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adap
 		})
 	}
 	saveAesItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceSaveAesKey)
-	closeUpgradeItem := fyne.NewMenuItem("关闭自动更新", nil)
+	closeUpgradeItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuCloseUpgrade), nil)
 	closeUpgradeItem.Action = func() {
 		checkedFn(closeUpgradeItem, func(item *fyne.MenuItem) {
 			if item.Checked {
@@ -88,17 +149,42 @@ func (m *Normal) CreateMenu(a fyne.App, w fyne.Window, tutorials map[string]adap
 		})
 	}
 	closeUpgradeItem.Checked = a.Preferences().Bool(constant.NavStatePreferenceCloseUpgrade)
-	action := fyne.NewMenu("功能", saveAesItem, closeUpgradeItem)
+	langZhItem := fyne.NewMenuItem(i18n.T(i18n.KeyLangChinese), nil)
+	langEnItem := fyne.NewMenuItem(i18n.T(i18n.KeyLangEnglish), nil)
+	setLanguageChecked := func(lang string) {
+		langZhItem.Checked = lang == i18n.LangZhCN
+		langEnItem.Checked = lang == i18n.LangEnUS
+	}
+	applyLanguage := func(lang string) {
+		a.Preferences().SetString(constant.NavStatePreferenceLanguage, lang)
+		i18n.SetLanguage(lang)
+		setLanguageChecked(lang)
+		if onLanguageChange != nil {
+			onLanguageChange()
+		}
+	}
+	langZhItem.Action = func() {
+		applyLanguage(i18n.LangZhCN)
+	}
+	langEnItem.Action = func() {
+		applyLanguage(i18n.LangEnUS)
+	}
+	setLanguageChecked(a.Preferences().StringWithFallback(constant.NavStatePreferenceLanguage, i18n.LangZhCN))
+	languageMenu := fyne.NewMenu(i18n.T(i18n.KeyMenuLanguage), langZhItem, langEnItem)
+	languageItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuLanguage), nil)
+	languageItem.ChildMenu = languageMenu
 
-	feedbackAesItem := fyne.NewMenuItem("反馈", func() {
+	action := fyne.NewMenu(i18n.T(i18n.KeyMenuAction), textCompareItem, saveAesItem, closeUpgradeItem, languageItem)
+
+	feedbackAesItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuFeedback), func() {
 		u, _ := url.Parse("https://github.com/fanyiguang/useful-tools/issues")
 		_ = a.OpenURL(u)
 	})
-	helpItem := fyne.NewMenuItem("帮助", func() {
+	helpItem := fyne.NewMenuItem(i18n.T(i18n.KeyMenuHelpHome), func() {
 		u, _ := url.Parse("https://github.com/fanyiguang/useful-tools")
 		_ = a.OpenURL(u)
 	})
-	help := fyne.NewMenu("帮助", feedbackAesItem, helpItem)
+	help := fyne.NewMenu(i18n.T(i18n.KeyMenuHelp), feedbackAesItem, helpItem)
 
 	main = fyne.NewMainMenu(
 		file, mode, view, action, help,

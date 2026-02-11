@@ -5,6 +5,7 @@ import (
 	sysNet "net"
 	"strings"
 	"useful-tools/app/usefultools/adapter"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/helper/net"
 	"useful-tools/helper/str"
 )
@@ -62,7 +63,7 @@ func (d *DnsQuery) SetPreModeInput(preModeInput string) {
 
 func (d *DnsQuery) NormalDns(dnsServer, domain string) (ips []string, err error) {
 	dnsInfo := buildDnsInfo(str.TrimStringSpace(dnsServer, domain))
-	if dnsInfo.Server == "默认" || dnsInfo.Server == "" {
+	if dnsInfo.Server == "" || i18n.Matches(i18n.KeyDefault, dnsInfo.Server) {
 		return sysNet.LookupHost(domain)
 	} else {
 		return net.SendDnsRequest(dnsInfo)

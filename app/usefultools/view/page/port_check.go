@@ -15,6 +15,7 @@ import (
 	"time"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
+	"useful-tools/app/usefultools/i18n"
 	"useful-tools/app/usefultools/view/constant"
 	viewWidget "useful-tools/app/usefultools/view/widget"
 	"useful-tools/helper/Go"
@@ -34,8 +35,9 @@ type PortCheck struct {
 func NewPortCheck() *PortCheck {
 	return &PortCheck{
 		BasePage: BasePage{
-			Title:      "端口检测",
-			Intro:      "TCP/UDP端口检测",
+			ID:         constant.PageIDPortCheck,
+			TitleKey:   i18n.KeyPagePortTitle,
+			IntroKey:   i18n.KeyPagePortIntro,
 			SupportWeb: true,
 		},
 		logics: controller.NewPortCheck(),
@@ -79,7 +81,7 @@ func (p *PortCheck) proView() fyne.CanvasObject {
 	}
 
 	box := container.NewGridWithColumns(2, &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -87,7 +89,7 @@ func (p *PortCheck) proView() fyne.CanvasObject {
 			multi.SetText("")
 		},
 	}, &widget.Button{
-		Text:       "检测",
+		Text:       i18n.T(i18n.KeyButtonCheck),
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -126,7 +128,7 @@ func (p *PortCheck) rightScreen(w fyne.Window) fyne.CanvasObject {
 	if p.logics.ViewText() != "" {
 		p.view.SetText(p.logics.ViewText())
 	} else {
-		p.view.PlaceHolder = "检测结果"
+		p.view.PlaceHolder = i18n.T(i18n.KeyPortResultPlaceholder)
 	}
 	p.view.OnChanged = func(s string) {
 		logrus.Infof("port check result: %s", s)
@@ -135,7 +137,7 @@ func (p *PortCheck) rightScreen(w fyne.Window) fyne.CanvasObject {
 	//view.Disable()
 
 	box := container.NewGridWithColumns(2, &widget.Button{
-		Text:       "清空",
+		Text:       i18n.T(i18n.KeyButtonClear),
 		Icon:       theme.Icon(theme.IconNameContentClear),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
@@ -143,12 +145,12 @@ func (p *PortCheck) rightScreen(w fyne.Window) fyne.CanvasObject {
 			p.view.SetText("")
 		},
 	}, &widget.Button{
-		Text:       "复制",
+		Text:       i18n.T(i18n.KeyButtonCopy),
 		Icon:       theme.Icon(theme.IconNameContentCopy),
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("port check view check copy: %s", p.view.Text)
-			w.Clipboard().SetContent(strings.TrimSpace(p.view.Text))
+			viewWidget.CopyToClipboard(w, p.view.Text)
 		},
 	})
 	p.scroll = container.NewVScroll(p.view)
@@ -172,13 +174,17 @@ func (p *PortCheck) portCheckFrom() fyne.CanvasObject {
 		p.logics.SetIFace(s)
 	})
 	if p.logics.IFace() != "" {
-		interfaceSelect.SetSelected(p.logics.IFace())
+		selected := p.logics.IFace()
+		if i18n.Matches(i18n.KeyAuto, selected) {
+			selected = i18n.T(i18n.KeyAuto)
+		}
+		interfaceSelect.SetSelected(selected)
 	} else {
-		interfaceSelect.SetSelected("自动")
+		interfaceSelect.SetSelected(i18n.T(i18n.KeyAuto))
 	}
 
 	host := widget.NewEntry()
-	host.SetPlaceHolder("目标地址")
+	host.SetPlaceHolder(i18n.T(i18n.KeyPortHostPlaceholder))
 	host.SetText(p.logics.Host())
 	host.OnChanged = func(s string) {
 		logrus.Infof("port check host: %s", s)
@@ -193,12 +199,12 @@ func (p *PortCheck) portCheckFrom() fyne.CanvasObject {
 		if ip := utils.FindIP(strings.TrimSpace(s)); ip != nil {
 			return nil
 		} else {
-			return errors.New("地址格式错误！")
+			return errors.New(i18n.T(i18n.KeyPortInvalidHostError))
 		}
 	})
 
 	port := widget.NewEntry()
-	port.SetPlaceHolder("目标端口")
+	port.SetPlaceHolder(i18n.T(i18n.KeyPortPortPlaceholder))
 	port.SetText(p.logics.Port())
 	port.OnChanged = func(s string) {
 		logrus.Infof("port check port: %s", s)
@@ -213,10 +219,10 @@ func (p *PortCheck) portCheckFrom() fyne.CanvasObject {
 		iPort, err := strconv.Atoi(strings.TrimSpace(s))
 		if err != nil {
 			logrus.Warnf("strconv.Atoi error: %v", err)
-			return errors.New("端口错误！")
+			return errors.New(i18n.T(i18n.KeyPortInvalidPortError))
 		}
 		if iPort > 65535 || iPort < 0 {
-			return errors.New("端口不在合法范围内！")
+			return errors.New(i18n.T(i18n.KeyPortInvalidPortRangeError))
 		}
 		return nil
 	})
@@ -224,10 +230,10 @@ func (p *PortCheck) portCheckFrom() fyne.CanvasObject {
 	var form *widget.StyleForm
 	form = &widget.StyleForm{
 		Items: []*widget.StyleFormItem{
-			{Text: "协议类型:", Widget: networkSelect, HintText: "必选"},
-			{Text: "本地网卡:", Widget: interfaceSelect, HintText: "必选"},
-			{Text: "目标地址:", Widget: host, HintText: "必填"},
-			{Text: "目标端口:", Widget: port, HintText: "必填"},
+			{Text: i18n.T(i18n.KeyPortNetworkLabel), Widget: networkSelect, HintText: i18n.T(i18n.KeyHintSelectRequired)},
+			{Text: i18n.T(i18n.KeyPortInterfaceLabel), Widget: interfaceSelect, HintText: i18n.T(i18n.KeyHintSelectRequired)},
+			{Text: i18n.T(i18n.KeyPortHostLabel), Widget: host, HintText: i18n.T(i18n.KeyHintRequired)},
+			{Text: i18n.T(i18n.KeyPortPortLabel), Widget: port, HintText: i18n.T(i18n.KeyHintRequired)},
 		},
 		OnCancel: func() {
 			logrus.Infof("port check page cancelled")
@@ -255,8 +261,8 @@ func (p *PortCheck) portCheckFrom() fyne.CanvasObject {
 				}
 			})
 		},
-		SubmitText: "检测",
-		CancelText: "清空",
+		SubmitText: i18n.T(i18n.KeyButtonCheck),
+		CancelText: i18n.T(i18n.KeyButtonClear),
 		ButtonLayout: func(cancel *widget.Button, submit *widget.Button) *fyne.Container {
 			return container.NewGridWithColumns(2, cancel, submit)
 		},

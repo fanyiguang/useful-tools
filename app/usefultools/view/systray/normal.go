@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"github.com/sirupsen/logrus"
 	"useful-tools/app/usefultools/adapter"
+	"useful-tools/app/usefultools/i18n"
 )
 
 var _ adapter.Systray = (*Normal)(nil)
@@ -17,7 +18,7 @@ func NewNormal() *Normal {
 }
 
 func (n *Normal) CreateTrayMenu(window fyne.Window) *fyne.Menu {
-	h := fyne.NewMenuItem("打开工具", func() {
+	h := fyne.NewMenuItem(i18n.T(i18n.KeySystrayOpen), func() {
 		logrus.Infof("open tools")
 		window.Show()
 	})
