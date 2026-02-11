@@ -9,7 +9,6 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/sirupsen/logrus"
-	"strings"
 	"useful-tools/app/usefultools/adapter"
 	"useful-tools/app/usefultools/controller"
 	"useful-tools/app/usefultools/i18n"
@@ -90,7 +89,7 @@ func (a *AesConversion) rightScreen(w fyne.Window) fyne.CanvasObject {
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("aes conversion view check copy: %s", a.view.Text)
-			w.Clipboard().SetContent(strings.TrimSpace(a.view.Text))
+			viewWidget.CopyToClipboard(w, a.view.Text)
 		},
 	})
 	return container.NewBorder(top, bottom, left, right, container.NewBorder(nil, box, nil, nil, a.view))

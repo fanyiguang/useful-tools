@@ -40,7 +40,8 @@ const (
 	KeyHintOptional       Key = "hint.optional"
 	KeyHintSelectRequired Key = "hint.select_required"
 
-	KeyErrorPrefix Key = "error.prefix"
+	KeyErrorPrefix             Key = "error.prefix"
+	KeyNotificationCopySuccess Key = "notification.copy_success"
 
 	KeyAuto    Key = "common.auto"
 	KeyDefault Key = "common.default"
@@ -121,8 +122,8 @@ const (
 	KeyDnsDomainLabel        Key = "dns.domain.label"
 	KeyDnsInvalidDomainError Key = "dns.invalid_domain.error"
 
-	KeyPageFormatConversionTitle Key = "page.format_conversion.title"
-	KeyPageFormatConversionIntro Key = "page.format_conversion.intro"
+	KeyPageFormatConversionTitle   Key = "page.format_conversion.title"
+	KeyPageFormatConversionIntro   Key = "page.format_conversion.intro"
 	KeyFormatConversionTargetLabel Key = "format_conversion.target.label"
 	KeyFormatConversionInputLabel  Key = "format_conversion.input.label"
 	KeyFormatJson                  Key = "format.json"

@@ -147,7 +147,7 @@ func (d *DnsQuery) rightScreen(w fyne.Window) fyne.CanvasObject {
 		Importance: widget.MediumImportance,
 		OnTapped: func() {
 			logrus.Infof("dns query view check copy: %s", d.view.Text)
-			w.Clipboard().SetContent(strings.TrimSpace(d.view.Text))
+			viewWidget.CopyToClipboard(w, d.view.Text)
 		},
 	})
 	d.scroll = container.NewVScroll(d.view)
